@@ -49,7 +49,7 @@
       (shutdown impl driver))))
 
 (defn executor-driver
-  [executor framework master credential]
+  [executor]
   (let [d (MesosExecutorDriver. executor)]
     (reify ExecutorDriver
       (abort! [this]
