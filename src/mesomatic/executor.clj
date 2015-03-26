@@ -21,7 +21,7 @@
   (start!                  [this])
   (stop!                   [this]))
 
-(defn executor
+(defn wrap-executor
   [impl]
   (reify
     org.apache.mesos.Executor
@@ -47,6 +47,10 @@
                     (data->pb slave-info)))
     (shutdown [this driver]
       (shutdown impl driver))))
+
+(defmacro executor
+  [& body]
+  `(wrap-executor (reify Executor ~@body)))
 
 (defn executor-driver
   [executor]
