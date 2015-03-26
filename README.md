@@ -11,9 +11,19 @@ Mesomatic versions match the API version they target.
 Add this to your leiningen profile.
 
 ```clojure
-:dependencies [org.spootnik/mesomatic "0.21.1"]
+:dependencies [...
+               [org.spootnik/mesomatic "0.21.1"]]
 ```
 
+If you want to use the [core.async](https://github.com/clojure/core.async) facade,
+you will need to pull it in as well:
+
+```clojure
+:dependencies [...
+               [org.spootnik/mesomatic       "0.21.1"]
+               [org.spootnik/mesomatic-async "0.21.1"]] 
+```
+               
 ## Namespaces
 
 - `mesomatic.types` contains a facade to and from all protobuf types.
