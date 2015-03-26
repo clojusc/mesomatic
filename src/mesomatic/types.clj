@@ -1454,20 +1454,8 @@
       ;; default
       nil)))
 
+;; By default, yield the original payload.
 
-
-
-(comment
-
-
-
-
-  (defrecord CommandInfo [exec shell]
-    Serializable
-    (data->pb [this]
-      (-> (Protos$CommandInfo/newBuilder)
-          (.setShell (or shell true))
-          (.setValue exec)
-          (.build))))
-
-  )
+(defmethod pb->data :default
+  [this]
+  this)
