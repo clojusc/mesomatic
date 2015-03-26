@@ -28,7 +28,7 @@
   (start!                  [this])
   (stop!                   [this] [this failover?]))
 
-(defn scheduler
+(defn wrap-scheduler
   [implementation]
   (reify
     org.apache.mesos.Scheduler
@@ -63,6 +63,10 @@
                      (pb->data status)))
     (error [this driver message]
       (error implementation driver message))))
+
+(defmacro scheduler
+  [& body]
+  `(wrap-scheduler (reify Scheduler ~@body)))
 
 (defn scheduler-driver
   ([scheduler framework master]
