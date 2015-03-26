@@ -30,13 +30,6 @@
            org.apache.mesos.Protos$PerfStatistics
            org.apache.mesos.Protos$Request
            org.apache.mesos.Protos$Offer
-           org.apache.mesos.Protos$Offer$Operation
-           org.apache.mesos.Protos$Offer$Operation$Type
-           org.apache.mesos.Protos$Offer$Operation$Launch
-           org.apache.mesos.Protos$Offer$Operation$Reserve
-           org.apache.mesos.Protos$Offer$Operation$Unreserve
-           org.apache.mesos.Protos$Offer$Operation$Create
-           org.apache.mesos.Protos$Offer$Operation$Destroy
            org.apache.mesos.Protos$TaskInfo
            org.apache.mesos.Protos$TaskState
            org.apache.mesos.Protos$TaskStatus
@@ -411,7 +404,7 @@
                            (doseq [attr attributes]
                              (.addAttributes builder (data->pb attr)))
                            builder)]
-      (-> (Protos$SlaveInfo/newbuilder)
+      (-> (Protos$SlaveInfo/newBuilder)
           (.setHostname (str hostname))
           (cond->
               port       (.setPort (int port))
@@ -467,7 +460,7 @@
       (.build builder))))
 
 (defmethod pb->data Protos$Value$Ranges
-  [^Protos$Values$Ranges ranges]
+  [^Protos$Value$Ranges ranges]
   (ValueRanges. (.getRangeList ranges)))
 
 (defmethod pb->data Protos$Value$Set
@@ -475,8 +468,8 @@
   (set (.getItemList value-set)))
 
 (defmethod pb->data Protos$Value$Text
-  [^Protos$Value$Text text]
-  (.getValue text))
+  [^Protos$Value$Text x]
+  (.getValue x))
 
 (defrecord Value [type scalar ranges set text]
   Serializable
@@ -484,10 +477,10 @@
     (-> (Protos$Value/newBuilder)
         (.setType (data->pb type))
         (cond->
-            scalar (data->pb scalar)
-            ranges (map data->pb ranges)
-            set    (data->pb set)
-            text   (data->pb text))
+            scalar (.setScalar (data->pb scalar))
+            ranges (.setRanges (data->pb (ValueRanges. ranges)))
+            set    (.setSet (data->pb set))
+            text   (.setText (data->pb text)))
         (.build))))
 
 (defmethod pb->data Protos$Value
@@ -510,10 +503,10 @@
         (.setName name)
         (.setType (data->pb type))
         (cond->
-            scalar (data->pb scalar)
-            ranges (data->pb ranges)
-            set    (data->pb set)
-            text   (data->pb text))
+            scalar (.setScalar (data->pb scalar))
+            ranges (.setRanges (data->pb (ValueRanges. ranges)))
+            set    (.setSet (data->pb set))
+            text   (.setText (data->pb text)))
         (.build))))
 
 (defmethod pb->data Protos$Attribute
@@ -537,9 +530,9 @@
         (.setName name)
         (.setType (data->pb type))
         (cond->
-            scalar (data->pb scalar)
-            ranges (data->pb ranges)
-            set    (data->pb set)
+            scalar (.setScalar (data->pb scalar))
+            ranges (.setRanges (data->pb (ValueRanges. ranges)))
+            set    (.setSet (data->pb set))
             role   (.setRole role))
         (.build))))
 
@@ -573,7 +566,7 @@
                                net-tcp-rtt-microsecs-p95
                                net-tcp-rtt-microsecs-p99]
   Serializable
-  (pb->data [this]
+  (data->pb [this]
     (-> (Protos$ResourceStatistics/newBuilder)
         (.setTimestamp (double timestamp))
         (cond->
@@ -618,7 +611,7 @@
 
 (defmethod pb->data Protos$ResourceStatistics
   [^Protos$ResourceStatistics s]
-  (ResourceStatistics
+  (ResourceStatistics.
    (.getTimestamp s)
    (.getCpusUserTimeSecs s)
    (.getCpusSystemTimeSecs s)
@@ -694,108 +687,120 @@
                            llc-prefetches llc-prefetch-misses
                            dtlb-loads dtlb-load-misses
                            dtlb-stores dtlb-store-misses
-                           dtlb-prefetch dtlb-prefetch-misses
+                           dtlb-prefetches dtlb-prefetch-misses
                            itlb-loads itlb-load-misses
                            branch-loads branch-load-misses
-                           node-loasds node-load-misses
+                           node-loads node-load-misses
                            node-stores node-store-misses
-                           node-prefetch node-prefetch-misses]
+                           node-prefetches node-prefetch-misses]
+
   Serializable
   (data->pb [this]
-    (-> (Protos$PerfStatistics/newBuilder)
-        (.setTimestamp (double timestamp))
-        (.setDuration (double duration))
-        (cond->
-            cycles                    (.setCycles (long cycles))
-            stalled-cycles-frontend   (.setStalledCyclesFrontend
-                                       (long stalled-cycles-frontend))
-            stalled-cycles-backend    (.setStalledCyclesBackend
-                                       (long stalled-cycles-backend))
-            instructions              (.setInstructions (long instructions))
-            cache-references          (.setCacheReferences
-                                       (long cache-references))
-            cache-misses              (.setCacheMisses (long cache-misses))
-            branches                  (.setBranches (long branches))
-            branch-misses             (.setBranchMisses (long branch-misses))
-            bus-cycles                (.setBusCycles (long bus-cycles))
-            ref-cycles                (.setRefCycles (long ref-cycles))
-            cpu-clock                 (.setCpuClock (double cpu-clock))
-            task-clock                (.setTaskClock (double task-clock))
-            page-faults               (.setPageFaults (long page-faults))
-            major-faults              (.setMajorFaults (long major-faults))
-            context-switches          (.setContextSwitches
-                                       (long context-switches))
-            cpu-migrations            (.setCpuMigrations
-                                       (long cpu-migrations))
-            alignment-faults          (.setAlignmentFaults
-                                       (long alignment-faults))
-            emulation-faults          (.setEmulationFaults
-                                       (long emulation-faults))
-            l1-dcache-loads           (.setL1DcacheLoads
-                                       (long l1-dcache-loads))
-            l1-dcache-load-misses     (.setL1DcacheLoadMisses
-                                       (long l1-dcache-load-misses))
-            l1-dcache-stores          (.setL1DcacheStores
-                                       (long l1-dcache-stores))
-            l1-dcache-store-misses    (.setL1DcacheStoreMisses
-                                       (long l1-dcache-store-misses))
-            l1-dcache-prefetches      (.setL1DcachePrefetches
-                                       (long l1-dcache-prefetches))
-            l1-dcache-prefetch-misses (.setL1DcachePrefetchMisses
-                                       (long l1-dcache-prefetch-misses))
-            l1-icache-loads           (.setL1IcacheLoads
-                                       (long l1-icache-loads))
-            l1-icache-load-misses     (.setL1IcacheLoadMisses
-                                       (long l1-icache-load-misses))
-            l1-icache-prefetches      (.setL1IcachePrefetches
-                                       (long l1-icache-prefetches))
-            l1-icache-prefetch-misses (.setL1IcachePrefetchMisses
-                                       (long l1-icache-prefetch-misses))
-            llc-loads                 (.setLlcLoads
-                                       (long llc-loads))
-            llc-load-misses           (.setLlcLoadMisses
-                                       (long llc-load-misses))
-            llc-stores                (.setLlcStores
-                                       (long llc-stores))
-            llc-store-misses          (.setLlcStoreMisses
-                                       (long llc-store-misses))
-            llc-prefetches            (.setLlcPrefetches
-                                       (long llc-prefetches))
-            llc-prefetch-misses       (.setLlcPrefetchMisses
-                                       (long llc-prefetch-misses))
-            dtlb-loads                (.setDtlbLoads
-                                       (long dtlb-loads))
-            dtlb-load-misses          (.setDtlbLoadMisses
-                                       (long dtlb-load-misses))
-            dtlb-stores               (.setDtlbStores
-                                       (long dtlb-stores))
-            dtlb-store-misses         (.setDtlbStoreMisses
-                                       (long dtlb-store-misses))
-            dtlb-prefetches           (.setDtlbPrefetches
-                                       (long dtlb-prefetches))
-            dtlb-prefetch-misses      (.setDtlbPrefetchMisses
-                                       (long dtlb-prefetch-misses))
-            itlb-loads                (.setItlbLoads
-                                       (long itlb-loads))
-            itlb-load-misses          (.setItlbLoadMisses
-                                       (long itlb-load-misses))
-            branch-loads              (.setBranchLoads
-                                       (long branch-loads))
-            branch-load-misses        (.setBranchLoadMisses
-                                       (long branch-load-misses))
-            node-loads                (.setNodeLoads
-                                       (long node-loads))
-            node-load-misses          (.setNodeLoadMisses
-                                       (long node-load-misses))
-            node-stores               (.setNodeStores
-                                       (long node-stores))
-            node-store-misses         (.setNodeStoreMisses
-                                       (long node-store-misses))
-            node-prefetches           (.setNodePrefetches
-                                       (long node-prefetches))
-            node-prefetch-misses      (.setNodePrefetchMisses
-                                       (long node-prefetch-misses)))
-        (.build))))
+    (let [b (-> (Protos$PerfStatistics/newBuilder)
+                (.setTimestamp (double timestamp))
+                (.setDuration (double duration)))]
+
+      (when cycles
+        (.setCycles b (long cycles)))
+      (when stalled-cycles-frontend
+        (.setStalledCyclesFrontend b (long stalled-cycles-frontend)))
+      (when stalled-cycles-backend
+        (.setStalledCyclesBackend b (long stalled-cycles-backend)))
+      (when instructions
+        (.setInstructions b (long instructions)))
+      (when cache-references
+        (.setCacheReferences b (long cache-references)))
+      (when cache-misses
+        (.setCacheMisses b (long cache-misses)))
+      (when branches
+        (.setBranches b (long branches)))
+      (when branch-misses
+        (.setBranchMisses b (long branch-misses)))
+      (when bus-cycles
+        (.setBusCycles b (long bus-cycles)))
+      (when ref-cycles
+        (.setRefCycles b (long ref-cycles)))
+      (when cpu-clock
+        (.setCpuClock b (double cpu-clock)))
+      (when task-clock
+        (.setTaskClock b (double task-clock)))
+      (when page-faults
+        (.setPageFaults b (long page-faults)))
+      (when major-faults
+        (.setMajorFaults b (long major-faults)))
+      (when context-switches
+        (.setContextSwitches b (long context-switches)))
+      (when  cpu-migrations
+        (.setCpuMigrations b (long cpu-migrations)))
+      (when alignment-faults
+        (.setAlignmentFaults b (long alignment-faults)))
+      (when emulation-faults
+        (.setEmulationFaults b (long emulation-faults)))
+      (when l1-dcache-loads
+        (.setL1DcacheLoads b (long l1-dcache-loads)))
+      (when l1-dcache-load-misses
+        (.setL1DcacheLoadMisses b (long l1-dcache-load-misses)))
+      (when l1-dcache-stores
+        (.setL1DcacheStores b (long l1-dcache-stores)))
+      (when l1-dcache-store-misses
+        (.setL1DcacheStoreMisses b (long l1-dcache-store-misses)))
+      (when l1-dcache-prefetches
+        (.setL1DcachePrefetches b (long l1-dcache-prefetches)))
+      (when l1-dcache-prefetch-misses
+        (.setL1DcachePrefetchMisses b (long l1-dcache-prefetch-misses)))
+      (when l1-icache-loads
+        (.setL1IcacheLoads b (long l1-icache-loads)))
+      (when l1-icache-load-misses
+        (.setL1IcacheLoadMisses b (long l1-icache-load-misses)))
+      (when l1-icache-prefetches
+        (.setL1IcachePrefetches b (long l1-icache-prefetches)))
+      (when l1-icache-prefetch-misses
+        (.setL1IcachePrefetchMisses b (long l1-icache-prefetch-misses)))
+      (when llc-loads
+        (.setLlcLoads b (long llc-loads)))
+      (when llc-load-misses
+        (.setLlcLoadMisses b (long llc-load-misses)))
+      (when llc-stores
+        (.setLlcStores b (long llc-stores)))
+      (when llc-store-misses
+        (.setLlcStoreMisses b (long llc-store-misses)))
+      (when llc-prefetches
+        (.setLlcPrefetches b (long llc-prefetches)))
+      (when llc-prefetch-misses
+        (.setLlcPrefetchMisses b (long llc-prefetch-misses)))
+      (when dtlb-loads
+        (.setDtlbLoads b (long dtlb-loads)))
+      (when dtlb-load-misses
+        (.setDtlbLoadMisses b (long dtlb-load-misses)))
+      (when dtlb-stores
+        (.setDtlbStores b (long dtlb-stores)))
+      (when dtlb-store-misses
+        (.setDtlbStoreMisses b (long dtlb-store-misses)))
+      (when dtlb-prefetches
+        (.setDtlbPrefetches b (long dtlb-prefetches)))
+      (when dtlb-prefetch-misses
+        (.setDtlbPrefetchMisses b (long dtlb-prefetch-misses)))
+      (when itlb-loads
+        (.setItlbLoads b (long itlb-loads)))
+      (when itlb-load-misses
+        (.setItlbLoadMisses b (long itlb-load-misses)))
+      (when branch-loads
+        (.setBranchLoads b (long branch-loads)))
+      (when branch-load-misses
+        (.setBranchLoadMisses b (long branch-load-misses)))
+      (when node-loads
+        (.setNodeLoads b (long node-loads)))
+      (when node-load-misses
+        (.setNodeLoadMisses b (long node-load-misses)))
+      (when node-stores
+        (.setNodeStores b (long node-stores)))
+      (when node-store-misses
+        (.setNodeStoreMisses b (long node-store-misses)))
+      (when node-prefetches
+        (.setNodePrefetches b (long node-prefetches)))
+      (when node-prefetch-misses
+        (.setNodePrefetchMisses b (long node-prefetch-misses)))
+      (.build b))))
 
 (defmethod pb->data Protos$PerfStatistics
   [^Protos$PerfStatistics s]
@@ -816,16 +821,19 @@
    (.getTaskClock s)
    (.getPageFaults s)
    (.getMajorFaults s)
+   (.getMinorFaults s)
    (.getContextSwitches s)
    (.getCpuMigrations s)
    (.getAlignmentFaults s)
    (.getEmulationFaults s)
    (.getL1DcacheLoads s)
    (.getL1DcacheLoadMisses s)
+   (.getL1DcacheStores s)
+   (.getL1DcacheStoreMisses s)
    (.getL1DcacheLoadPrefetches s)
    (.getL1DcacheLoadPrefetchMisses s)
    (.getL1IcacheLoads s)
-   (.getL1IcacheLoadMisse s)
+   (.getL1IcacheLoadMisses s)
    (.getL1IcachePrefetches s)
    (.getL1IcachePrefetchMisses s)
    (.getLlcLoads s)
@@ -862,7 +870,7 @@
                             (.addResources builder (data->pb r)))
                           builder)]
       (-> (Protos$Request/newBuilder)
-          (cond-> slave-id (data->pb slave-id))
+          (cond-> slave-id (.setSlaveId (data->pb slave-id)))
           (add-resources resources)
           (.build)))))
 
@@ -911,63 +919,11 @@
    (map pb->data (.getAttributesList offer))
    (map pb->data (.getExecutorIdsList offer))))
 
-(defmethod pb->data Protos$Offer$Operation$Type
-  [^Protos$Offer$Operation$Type type]
-  (case type
-    Protos$Offer$Operation$Type/LAUNCH    :operation-type-launch
-    Protos$Offer$Operation$Type/RESERVE   :operation-type-reserve
-    Protos$Offer$Operation$Type/UNRESERVE :operation-type-unreserve
-    Protos$Offer$Operation$Type/CREATE    :operation-type-create
-    Protos$Offer$Operation$Type/DESTROY   :operation-type-destroy))
-
-(defrecord OfferOperation [type launch reserve unreserve create destroy]
-  Serializable
-  (data->pb [this]
-    (let [mk-launch    #(let [b (Protos$Offer$Operation$Launch/newBuilder)]
-                          (doseq [u reserve]
-                            (.addTaskInfos b (data->pb u)))
-                          b)
-          mk-reserve   #(let [b (Protos$Offer$Operation$Reserve/newBuilder)]
-                          (doseq [u reserve]
-                            (.addResources b (data->pb u)))
-                          b)
-          mk-unreserve #(let [b (Protos$Offer$Operation$Unreserve/newBuilder)]
-                          (doseq [u unreserve]
-                            (.addResources b (data->pb u)))
-                          b)
-          mk-create    #(let [b (Protos$Offer$Operation$Create/newBuilder)]
-                          (doseq [u create]
-                            (.addVolumes b (data->pb u)))
-                          b)
-          mk-destroy   #(let [b (Protos$Offer$Operation$Destroy/newBuilder)]
-                          (doseq [u destroy]
-                            (.addVolumes b (data->pb u)))
-                          b)]
-      (-> (Protos$Offer$Operation/newBuilder)
-          (.setType (data->pb type))
-          (cond->
-              (seq launch)    (.setLaunch (mk-launch launch))
-              (seq reserve)   (.setReserve (mk-reserve reserve))
-              (seq unreserve) (.setUnreserve (mk-unreserve unreserve))
-              (seq create)    (.setCreate (mk-create create))
-              (seq destroy)   (.setDestroy (mk-destroy destroy)))
-          (.build)))))
-
-(defmethod pb->data Protos$Offer$Operation
-  [^Protos$Offer$Operation op]
-  (OfferOperation.
-   (pb->data (.getType op))
-   (when-let [i (.getLaunch op)] (map pb->data (.getTaskInfosList i)))
-   (when-let [i (.getReserve op)] (map pb->data (.getResourcesList i)))
-   (when-let [i (.getUnreserve op)] (map pb->data (.getResourcesList i)))
-   (when-let [i (.getCreate op)] (map pb->data (.getVolumesList i)))
-   (when-let [i (.getDestroy op)] (map pb->data (.getVolumesList i)))))
-
 ;; TaskInfo
 ;; ========
 
 (defrecord TaskInfo [name task-id slave-id resources executor command
-                     container data health-check labels discovery]
+                     container data health-check]
     Serializable
     (data->pb [this]
       (let [add-resources (fn [builder]
@@ -981,14 +937,12 @@
             (cond->
                 executor     (.setContainer (data->pb container))
                 data         (.setData data)
-                health-check (.setHealthCheck (data->pb health-check))
-                labels       (.setLabels (data->pb labels))
-                discovery    (.setDiscovery (data->pb discovery)))
+                health-check (.setHealthCheck (data->pb health-check)))
             (add-resources)
             (.build)))))
 
 (defmethod pb->data Protos$TaskInfo
-  [^Proto$TaskInfo info]
+  [^Protos$TaskInfo info]
   (TaskInfo.
    (.getName info)
    (pb->data (.getTaskId info))
@@ -997,7 +951,7 @@
    (when-let [i (.getExecutor info)] (pb->data i))
    (when-let [c (.getCommand info)] (pb->data c))
    (when-let [c (.getContainer info)] (pb->data c))
-   (.getBytes data)
+   (.getData info)
    (when-let [hc (.getHealthCheck info)] (pb->data hc))
    (when-let [l (.getLabels info)] (pb->data l))
    (when-let [d (.getDiscovery info)] (pb->data d))))
@@ -1066,14 +1020,14 @@
     Protos$TaskStatus$Reason/REASON_TASK_UNKNOWN
     :reason-task-unknown))
 
-(defrecord TaskStatus [task-id state message source reson
+(defrecord TaskStatus [task-id state message source reason
                        data slave-id executor-id timestamp
                        uuid healthy]
   Serializable
   (data->pb [this]
     (-> (Protos$TaskStatus/newBuilder)
         (.setTaskId (data->pb task-id))
-        (.setTaskState (data->pb task-state))
+        (.setState (data->pb state))
         (cond->
             message     (.setMessage (str message))
             source      (.setSource (data->pb source))
@@ -1096,7 +1050,7 @@
         (cond-> refuse-seconds (.setRefuseSeconds (double refuse-seconds)))
         (.build))))
 
-(defmethod data->pb Protos$Filters
+(defmethod pb->data Protos$Filters
   [^Protos$Filters filters]
   (Filters. (.getRefuseSeconds filters)))
 
@@ -1113,7 +1067,7 @@
 
 (defmethod pb->data Protos$Environment$Variable
   [^Protos$Environment$Variable var]
-  (EnvironmentVariable. (.getName name) (.getValue value)))
+  (EnvironmentVariable. (.getName var) (.getValue var)))
 
 (defrecord Environment [variables]
   Serializable
@@ -1325,18 +1279,92 @@
 ;; Volume
 ;; ======
 
+(defmethod pb->data Protos$Volume$Mode
+  [^Protos$Volume$Mode mode]
+  (case mode
+    Protos$Volume$Mode/RW :volume-rw
+    Protos$Volume$Mode/RO :volume-ro))
+
+(defrecord Volume [container-path host-path mode]
+  Serializable
+  (data->pb [this]
+    (-> (Protos$Volume/newBuilder)
+        (.setContainerPath (str container-path))
+        (.setMode (data->pb mode))
+        (cond-> host-path (.setHostPath (str host-path))))))
+
 ;; ContainerInfo
 ;; =============
 
-;; Labels
-;; ======
+(defmethod pb->data Protos$ContainerInfo$Type
+  [^Protos$ContainerInfo$Type type]
+  (case type
+    Protos$ContainerInfo$Type/DOCKER :container-type-docker
+    Protos$ContainerInfo$Type/MESOS  :conatiner-type-mesos))
 
-;; Port
-;; ====
+(defrecord PortMapping [host-port container-port protocol]
+    Serializable
+    (data->pb [this]
+      (-> (Protos$ContainerInfo$DockerInfo$PortMapping/newBuilder)
+          (.setHostPort (int host-port))
+          (.setContainerPort (int container-port))
+          (cond-> protocol (.setProtocol protocol))
+          (.build))))
 
-;; DiscoveryInfo
-;; =============
+(defmethod pb->data Protos$ContainerInfo$DockerInfo$PortMapping
+  [^Protos$ContainerInfo$DockerInfo$PortMapping pm]
+  (PortMapping.
+   (.getHostPort pm)
+   (.getContainerPort pm)
+   (.getProtocol pm)))
 
+(defmethod pb->data Protos$ContainerInfo$DockerInfo$Network
+  [^Protos$ContainerInfo$DockerInfo$Network network]
+  (case network
+    Protos$ContainerInfo$DockerInfo$Network/HOST   :docker-network-host
+    Protos$ContainerInfo$DockerInfo$Network/BRIDGE :docker-network-bridge
+    Protos$ContainerInfo$DockerInfo$Network/NONE   :docker-network-none))
+
+(defrecord DockerInfo [image network port-mappings
+                       privileged parameters]
+  Serializable
+  (data->pb [this]
+    (let [add-port-mappings (fn [builder]
+                              (doseq [pm port-mappings]
+                                (.addPortMappings builder (data->pb pm)))
+                              builder)
+          add-parameters    (fn [builder]
+                              (doseq [p parameters]
+                                (.addParameters builder (data->pb p)))
+                              builder)]
+      (-> (Protos$ContainerInfo$DockerInfo/newBuilder)
+          (.setImage image)
+          (cond->
+              network       (.setNetwork (data->pb network))
+              privileged    (.setPrivileged (boolean privileged))
+
+              )
+          (add-port-mappings)
+          (add-parameters)
+          (.build)))))
+
+(defrecord ContainerInfo [type volumes hostname docker]
+  Serializable
+  (data->pb [this]
+    (let [add-volumes (fn [builder]
+                        (doseq [v volumes]
+                          (.addVolumes builder v))
+                        builder)]
+      (-> (Protos$ContainerInfo/newBuilder)
+          (.setType (data->pb type))
+          (cond->
+              hostname (.setHostname (str hostname))
+              docker   (.setDocker (data->pb docker)))
+          (add-volumes)
+          (.build)))))
+
+;; Safe for the common stuff in extend-protocol, this marks the end of
+;; messages defined in mesos.proto
 
 ;; Handle serialization of Status, Value.Type and TaskState from
 ;; keywords, as well as Scalars from their value.
@@ -1376,16 +1404,18 @@
       :value-ranges             Protos$Value$Type/RANGES
       :value-set                Protos$Value$Type/SET
       :value-text               Protos$Value$Type/TEXT
-      :operation-type-launch    Protos$Offer$Operation$Type/LAUNCH
-      :operation-type-unreserve Protos$Offer$Operation$Type/UNRESERVE
-      :operation-type-reserve   Protos$Offer$Operation$Type/RESERVE
-      :operation-type-create    Protos$Offer$Operation$Type/CREATE
-      :operation-type-destroy   Protos$Offer$Operation$Type/DESTROY
       :entity-some              Protos$ACL$Entity$Type/SOME
       :entity-any               Protos$ACL$Entity$Type/ANY
       :entity-none              Protos$ACL$Entity$Type/NONE
+      :volume-rw                Protos$Volume$Mode/RW
+      :volume-ro                Protos$Volume$Mode/RO
+      :docker-network-host      Protos$ContainerInfo$DockerInfo$Network/HOST
+      :docker-network-bridge    Protos$ContainerInfo$DockerInfo$Network/BRIDGE
+      :docker-network-none      Protos$ContainerInfo$DockerInfo$Network/NONE
+      :container-type-docker    Protos$ContainerInfo$Type/DOCKER
+      :container-type-mesos     Protos$ContainerInfo$Type/MESOS
 
-      ;; These are too wide
+      ;; These are too wide and mess up indenting!
       :reason-command-executor-failed
       Protos$TaskStatus$Reason/REASON_COMMAND_EXECUTOR_FAILED
       :reason-executor-terminated
@@ -1393,7 +1423,7 @@
       :reason-executor-unregistered
       Protos$TaskStatus$Reason/REASON_EXECUTOR_UNREGISTERED
       :reason-framework-removed
-      Protos$TaskStatus$Reason/REASON_FRAMEWORD_REMOVED
+      Protos$TaskStatus$Reason/REASON_FRAMEWORK_REMOVED
       :reason-gc-error
       Protos$TaskStatus$Reason/REASON_GC_ERROR
       :reason-invalid-frameworkid
@@ -1422,30 +1452,15 @@
       Protos$TaskStatus$Reason/REASON_TASK_UNKNOWN
 
       ;; default
-      nil))))
+      nil)))
+
+
 
 
 (comment
-  (defrecord PortMapping [host container protocol]
-    Serializable
-    (data->pb [this]
-      (-> (Protos$ContainerInfo$DockerInfo$PortMapping/newBuilder)
-          (.setHostPort (int host))
-          (.setContainerPort (int container))
-          (cond-> protocol (.setProtocol protocol))
-          (.build))))
 
-  (defrecord DockerInfo [image port-mappings]
-    Serializable
-    (data->pb [this]
-      (let [add-port-mappings (fn [builder pms]
-                                (doseq [pm pms]
-                                  (.addPortMappings builder (data->pb pm)))
-                                builder)]
-        (-> (Protos$ContainerInfo$DockerInfo/newBuilder)
-            (.setImage image)
-            (cond-> port-mappings (add-port-mappings port-mappings))
-            (.build)))))
+
+
 
   (defrecord CommandInfo [exec shell]
     Serializable
