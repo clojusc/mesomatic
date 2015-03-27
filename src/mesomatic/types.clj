@@ -70,6 +70,8 @@
   "Open protocol to convert from mesos protobuf to clojure"
   class)
 
+(declare ->pb)
+
 
 ;; Status
 ;; ======
@@ -187,7 +189,7 @@
         (.setUser (str (or name "")))
         (.setName (str name))
         (cond->
-            id               (.setId (data->pb id))
+            id               (.setId (->pb :FrameworkID id))
             failover-timeout (.setFailoverTimeout (double failover-timeout))
             checkpoint       (.setCheckpoint (boolean checkpoint))
             role             (.setRole (str role))
@@ -215,15 +217,11 @@
 (defrecord HealthCheckHTTP [port path statuses]
   Serializable
   (data->pb [this]
-    (let [add-statuses (fn [builder statuses]
-                         (doseq [status statuses]
-                           (.addStatuses builder (int status)))
-                         builder)]
-      (-> (Protos$HealthCheck$HTTP/newBuilder)
-          (.setPort (int port))
-          (cond-> path (.setPath (str path)))
-          (add-statuses statuses)
-          (.build)))))
+    (-> (Protos$HealthCheck$HTTP/newBuilder)
+        (.setPort (int port))
+        (cond-> path (.setPath (str path)))
+        (.addAllStatuses (map int statuses))
+        (.build))))
 
 (defmethod pb->data Protos$HealthCheck$HTTP
   [^Protos$HealthCheck$HTTP http]
@@ -239,7 +237,7 @@
   (data->pb [this]
     (-> (Protos$HealthCheck/newBuilder)
         (cond->
-            http                 (.setHttp (data->pb http))
+            http                 (.setHttp (->pb :HealthCheckHTTP http))
             delay-seconds        (.setDelaySeconds (double delay-seconds))
             interval-seconds     (.setIntervalSeconds (double interval-seconds))
             timeout-seconds      (.setTimeoutSeconds (double timeout-seconds))
@@ -247,7 +245,7 @@
                                   (int consecutive-failures))
             grace-period-seconds (.setGracePeriodSeconds
                                   (double grace-period-seconds))
-            command              (.setCommand (data->pb command)))
+            command              (.setCommand (->pb :CommandInfo command)))
         (.build))))
 
 (defmethod pb->data Protos$HealthCheck
@@ -281,14 +279,10 @@
 (defrecord CommandInfoContainer [image options]
   Serializable
   (data->pb [this]
-    (let [add-options (fn [builder options]
-                        (doseq [^String opt options]
-                          (.addOptions builder (str opt)))
-                        builder)]
-      (-> (Protos$CommandInfo$ContainerInfo/newBuilder)
-          (.setImage (str image))
-          (add-options options)
-          (.build)))))
+    (-> (Protos$CommandInfo$ContainerInfo/newBuilder)
+        (.setImage (str image))
+        (.addAllOptions (map str options))
+        (.build))))
 
 (defmethod pb->data Protos$CommandInfo$ContainerInfo
   [^Protos$CommandInfo$ContainerInfo container]
@@ -300,24 +294,16 @@
                         shell value arguments user]
   Serializable
   (data->pb [this]
-    (let [add-uris      (fn [builder uris]
-                          (doseq [^URI uri uris]
-                            (.addUris builder (data->pb uri)))
-                          builder)
-          add-arguments (fn [builder args]
-                          (doseq [^String arg args]
-                            (.addArguments builder (str arg)))
-                          builder)]
-      (-> (Protos$CommandInfo/newBuilder)
-          (cond->
-              container   (.setContainer (data->pb container))
-              environment (.setEnvironment (data->pb environment))
-              shell       (.setShell (boolean shell))
-              value       (.setValue (str value))
-              user        (.setUser (str user)))
-          (add-uris uris)
-          (add-arguments arguments)
-          (.build)))))
+    (-> (Protos$CommandInfo/newBuilder)
+        (cond->
+            container   (.setContainer (->pb :ContainerInfo container))
+            environment (.setEnvironment (->pb :Environment environment))
+            shell       (.setShell (boolean shell))
+            value       (.setValue (str value))
+            user        (.setUser (str user)))
+        (.addAllArguments (map str arguments))
+        (.addAllUris (map (partial ->pb :URI) uris))
+        (.build))))
 
 (defmethod pb->data Protos$CommandInfo
   [^Protos$CommandInfo info]
@@ -337,22 +323,17 @@
                          resources name source data discovery]
   Serializable
   (data->pb [this]
-    (let [add-resources (fn [builder resources]
-                          (doseq [r resources]
-                            (.addResources builder (data->pb r)))
-                          builder)]
-      (-> (Protos$ExecutorInfo/newBuilder)
-          (.setExecutorId (data->pb executor-id))
-          (.setCommandInfo (data->pb command))
-          (cond->
-              framework-id (.setFrameWorkId (data->pb framework-id))
-              container    (.setContainer (data->pb container))
-              name         (.setName (str name))
-              source       (.setSource (str source))
-              data         (.setData data)
-              discovery    (.setDiscovery (data->pb discovery)))
-          (add-resources resources)
-          (.build)))))
+    (-> (Protos$ExecutorInfo/newBuilder)
+        (.setExecutorId (->pb :ExecutorID executor-id))
+        (.setCommandInfo (->pb :CommandInfo command))
+        (cond->
+            framework-id (.setFrameWorkId (->pb :FrameworkID framework-id))
+            container    (.setContainer (->pb :ContainerInfo container))
+            name         (.setName (str name))
+            source       (.setSource (str source))
+            data         (.setData data))
+        (.addAllResources (map (partial ->pb :Resource) resources))
+        (.build))))
 
 (defmethod pb->data Protos$ExecutorInfo
   [^Protos$ExecutorInfo info]
@@ -397,23 +378,15 @@
 (defrecord SlaveInfo [hostname port resources attributes id checkpoint]
   Serializable
   (data->pb [this]
-    (let [add-resources  (fn [builder resources]
-                           (doseq [r resources]
-                             (.addResources builder (data->pb r)))
-                           builder)
-          add-attributes (fn [builder attributes]
-                           (doseq [attr attributes]
-                             (.addAttributes builder (data->pb attr)))
-                           builder)]
-      (-> (Protos$SlaveInfo/newBuilder)
-          (.setHostname (str hostname))
-          (cond->
-              port       (.setPort (int port))
-              id         (.setId (data->pb id))
-              checkpoint (.setCheckPoint (boolean checkpoint)))
-          (add-resources resources)
-          (add-attributes attributes)
-          (.build)))))
+    (-> (Protos$SlaveInfo/newBuilder)
+        (.setHostname (str hostname))
+        (cond->
+            port       (.setPort (int port))
+            id         (.setId (->pb :SlaveID id))
+            checkpoint (.setCheckPoint (boolean checkpoint)))
+        (.addAllResources (map (partial ->pb :Resource) resources))
+        (.addAllAttributes (map (partial ->pb :Attribute) attributes))
+        (.build))))
 
 (defmethod pb->data Protos$SlaveInfo
   [^Protos$SlaveInfo info]
@@ -867,14 +840,10 @@
 (defrecord Request [slave-id resources]
   Serializable
   (data->pb [this]
-    (let [add-resources (fn [builder resources]
-                          (doseq [r resources]
-                            (.addResources builder (data->pb r)))
-                          builder)]
-      (-> (Protos$Request/newBuilder)
-          (cond-> slave-id (.setSlaveId (data->pb slave-id)))
-          (add-resources resources)
-          (.build)))))
+    (-> (Protos$Request/newBuilder)
+        (cond-> slave-id (.setSlaveId (->pb :SlaveID slave-id)))
+        (.addAllResources (map (partial ->pb :Resource) resources))
+        (.build))))
 
 (defmethod pb->data Protos$Request
   [^Protos$Request req]
@@ -889,26 +858,15 @@
                   resources attributes executor-ids]
   Serializable
   (data->pb [this]
-    (let [add-resources    (fn [builder resources]
-                             (doseq [r resources]
-                               (.addResources builder (data->pb r)))
-                             builder)
-          add-attributes   (fn [builder attributes]
-                             (doseq [attr attributes]
-                               (.addAttributes builder (data->pb attr)))
-                             builder)
-          add-executor-ids (fn [builder executor-ids]
-                             (doseq [id executor-ids]
-                               (.addExecutorIds builder (data->pb id))))]
-      (-> (Protos$Offer/newBuilder)
-          (.setId (data->pb id))
-          (.setFrameworkId (data->pb framework-id))
-          (.setSlaveId (data->pb slave-id))
-          (.setHostname (str hostname))
-          (add-resources resources)
-          (add-attributes attributes)
-          (add-executor-ids executor-ids)
-          (.build)))))
+    (-> (Protos$Offer/newBuilder)
+        (.setId (->pb :OfferID id))
+        (.setFrameworkId (->pb :FrameworkID framework-id))
+        (.setSlaveId (->pb :SlaveID slave-id))
+        (.setHostname (str hostname))
+        (.addAllResources (map (partial ->pb :Resource) resources))
+        (.addAllAttributes (map (partial ->pb :Attribute) attributes))
+        (.addAllExecutorIds (map (partial ->pb :ExecutorID) attributes))
+        (.build))))
 
 (defmethod pb->data Protos$Offer
   [^Protos$Offer offer]
@@ -928,20 +886,18 @@
                      container data health-check]
     Serializable
     (data->pb [this]
-      (let [add-resources (fn [builder]
-                            (doseq [r resources]
-                              (.addResources builder (data->pb r)))
-                            builder)]
-        (-> (Protos$TaskInfo/newBuilder)
-            (.setName (str name))
-            (.setTaskId (data->pb task-id))
-            (.setSlaveId (data->pb slave-id))
-            (cond->
-                executor     (.setContainer (data->pb container))
-                data         (.setData data)
-                health-check (.setHealthCheck (data->pb health-check)))
-            (add-resources)
-            (.build)))))
+      (-> (Protos$TaskInfo/newBuilder)
+          (.setName (str name))
+          (.setTaskId (->pb :TaskID task-id))
+          (.setSlaveId (->pb :SlaveID slave-id))
+          (cond->
+              executor     (.setExecutor (->pb :ExecutorInfo container))
+              command      (.setCommand (->pb :CommandInfo command))
+              container    (.setContainer (->pb :ContainerInfo container))
+              data         (.setData data)
+              health-check (.setHealthCheck (->pb :HealthCheck health-check)))
+          (.addAllResources (map (partial ->pb :Resource) resources))
+          (.build))))
 
 (defmethod pb->data Protos$TaskInfo
   [^Protos$TaskInfo info]
@@ -1038,8 +994,8 @@
             source      (.setSource (data->pb source))
             reason      (.setReason (data->pb reason))
             data        (.setData data)
-            slave-id    (.setSlaveId (data->pb slave-id))
-            executor-id (.setExecutorId (data->pb executor-id))
+            slave-id    (.setSlaveId (->pb :SlaveID slave-id))
+            executor-id (.setExecutorId (->pb :ExecutorID executor-id))
             timestamp   (.setTimestamp (double timestamp))
             uuid        (.setUuid uuid)
             healthy     (.setHealthy (boolean healthy)))
@@ -1079,7 +1035,7 @@
   (data->pb [this]
     (let [builder (Protos$Environment/newBuilder)]
       (doseq [v variables]
-        (.addVariables builder (data->pb v)))
+        (.addVariables builder (->pb :EnvironmentVariable v)))
       (.build builder))))
 
 ;; Parameter
@@ -1102,7 +1058,7 @@
   (data->pb [this]
     (let [builder (Protos$Parameters/newBuilder)]
       (doseq [p parameter]
-        (.addParameter builder (data->pb p)))
+        (.addParameter builder (->pb :Parameter p)))
       (.build builder))))
 
 (defmethod pb->data Protos$Parameters
@@ -1129,7 +1085,7 @@
   (data->pb [this]
     (let [builder (Protos$Credentials/newBuilder)]
       (doseq [c credentials]
-        (.addCredentials builder (data->pb c)))
+        (.addCredentials builder (->pb :Credential c)))
       (.build builder))))
 
 (defmethod pb->data Protos$Credentials
@@ -1150,14 +1106,10 @@
 (defrecord ACLEntity [type values]
   Serializable
   (data->pb [this]
-    (let [add-values (fn [builder]
-                       (doseq [v values]
-                         (.addValues builder (str v)))
-                       builder)]
-      (-> (Protos$ACL$Entity/newBuilder)
-          (cond-> type (.setType (data->pb type)))
-          (add-values)
-          (.build)))))
+    (-> (Protos$ACL$Entity/newBuilder)
+        (cond-> type (.setType (data->pb type)))
+        (.addAllValues (map str values))
+        (.build))))
 
 (defmethod pb->data Protos$ACL$Entity
   [^Protos$ACL$Entity entity]
@@ -1169,8 +1121,8 @@
   Serializable
   (data->pb [this]
     (-> (Protos$ACL$RegisterFramework/newBuilder)
-        (.setPrincipals (data->pb principals))
-        (.setRoles (data->pb roles))
+        (.setPrincipals (->pb :ACLEntity principals))
+        (.setRoles (->pb :ACLEntity roles))
         (.build))))
 
 (defmethod pb->data Protos$ACL$RegisterFramework
@@ -1183,8 +1135,8 @@
   Serializable
   (data->pb [this]
     (-> (Protos$ACL$RunTask/newBuilder)
-        (.setPrincipals (data->pb principals))
-        (.setUsers (data->pb users))
+        (.setPrincipals (->pb :ACLEntity principals))
+        (.setUsers (->pb :ACLEntity users))
         (.build))))
 
 (defmethod pb->data Protos$ACL$RunTask
@@ -1197,8 +1149,8 @@
   Serializable
   (data->pb [this]
     (-> (Protos$ACL$ShutdownFramework/newBuilder)
-        (.setPrincipals (data->pb principals))
-        (.setFrameworkPrincipals (data->pb framework-principals))
+        (.setPrincipals (->pb :ACLEntity principals))
+        (.setFrameworkPrincipals (->pb :ACLEntity framework-principals))
         (.build))))
 
 (defmethod pb->data Protos$ACL$ShutdownFramework
@@ -1211,24 +1163,14 @@
                  run-tasks shutdown-frameworks]
   Serializable
   (data->pb [this]
-    (let [add-rf (fn [builder]
-                   (doseq [rf register-frameworks]
-                     (.addRegisterFrameworks builder rf))
-                   builder)
-          add-rt (fn [builder]
-                   (doseq [rt run-tasks]
-                     (.addRunTasks builder rt))
-                   builder)
-          add-sf (fn [builder]
-                   (doseq [sf shutdown-frameworks]
-                     (.addShutdownFrameworks builder sf))
-                   builder)]
-      (-> (Protos$ACLs/newBuilder)
-          (cond-> permissive (.setPermissive (boolean permissive)))
-          (add-rf)
-          (add-rt)
-          (add-sf)
-          (.build)))))
+    (-> (Protos$ACLs/newBuilder)
+        (cond-> permissive (.setPermissive (boolean permissive)))
+        (.addAllRegisterFrameworks (map (partial ->pb :ACLRegisterFramework)
+                                        register-frameworks))
+        (.addAllShutdownFrameworks (map (partial ->pb :ACLShutdownFramework)
+                                        shutdown-frameworks))
+        (.addAllRunTasks (map (partial ->pb :ACLRunTask) run-tasks))
+        (.build))))
 
 (defmethod pb->data Protos$ACLs
   [^Protos$ACLs acls]
@@ -1262,18 +1204,14 @@
                        aggregate-default-capacity]
   Serializable
   (data->pb [this]
-    (let [add-limits (fn [builder]
-                       (doseq [l limits]
-                         (.addLimits builder (data->pb l)))
-                       builder)]
-      (-> (Protos$RateLimits/newBuilder)
-          (cond->
-              aggregate-default-qps      (.setAggregateDefaultQps
-                                          (double aggregate-default-qps))
-              aggregate-default-capacity (.setAggregateDefaultCapacity
-                                          (long aggregate-default-capacity)))
-          (add-limits)
-          (.build)))))
+    (-> (Protos$RateLimits/newBuilder)
+        (cond->
+            aggregate-default-qps      (.setAggregateDefaultQps
+                                        (double aggregate-default-qps))
+            aggregate-default-capacity (.setAggregateDefaultCapacity
+                                        (long aggregate-default-capacity)))
+        (.addAllLimits (map (partial ->pb :RateLimit) limits))
+        (.build))))
 
 (defmethod pb->data Protos$RateLimits
   [^Protos$RateLimits rl]
@@ -1341,39 +1279,25 @@
                        privileged parameters]
   Serializable
   (data->pb [this]
-    (let [add-port-mappings (fn [builder]
-                              (doseq [pm port-mappings]
-                                (.addPortMappings builder (data->pb pm)))
-                              builder)
-          add-parameters    (fn [builder]
-                              (doseq [p parameters]
-                                (.addParameters builder (data->pb p)))
-                              builder)]
-      (-> (Protos$ContainerInfo$DockerInfo/newBuilder)
-          (.setImage image)
-          (cond->
-              network       (.setNetwork (data->pb network))
-              privileged    (.setPrivileged (boolean privileged))
-
-              )
-          (add-port-mappings)
-          (add-parameters)
-          (.build)))))
+    (-> (Protos$ContainerInfo$DockerInfo/newBuilder)
+        (.setImage image)
+        (cond->
+            network    (.setNetwork (data->pb network))
+            privileged (.setPrivileged (boolean privileged)))
+        (.addAllPortMappings (map (partial ->pb :PortMapping) port-mappings))
+        (.addAllParameters (map (partial ->pb :Parameter) parameters))
+        (.build))))
 
 (defrecord ContainerInfo [type volumes hostname docker]
   Serializable
   (data->pb [this]
-    (let [add-volumes (fn [builder]
-                        (doseq [v volumes]
-                          (.addVolumes builder v))
-                        builder)]
-      (-> (Protos$ContainerInfo/newBuilder)
-          (.setType (data->pb type))
-          (cond->
-              hostname (.setHostname (str hostname))
-              docker   (.setDocker (data->pb docker)))
-          (add-volumes)
-          (.build)))))
+    (-> (Protos$ContainerInfo/newBuilder)
+        (.setType (data->pb type))
+        (cond->
+            hostname (.setHostname (str hostname))
+            docker   (.setDocker (->pb :DockerInfo docker)))
+        (.addVolumes (map (partial ->pb :Volume) volumes))
+        (.build))))
 
 ;; Safe for the common stuff in extend-protocol, this marks the end of
 ;; messages defined in mesos.proto
@@ -1387,13 +1311,15 @@
     (-> (Protos$Value$Scalar/newBuilder)
         (.setValue this)
         (.build)))
+  clojure.lang.PersistentArrayMap
+  (data->pb [this]
+)
+
   clojure.lang.PersistentHashSet
   (data->pb [this]
-    (let [add-items (fn [builder items]
-                      (doseq [item items]
-                        (.addItem builder (str item)))
-                      builder)]
-      (-> (Protos$Value$Set/newBuilder) (add-items (seq this)) (.build))))
+    (-> (Protos$Value$Set/newBuilder)
+        (.addAllItems (seq this))
+        (.build)))
   java.lang.String
   (data->pb [this]
     (-> (Protos$Value$Text/newBuilder) (.setValue this) (.build)))
@@ -1471,3 +1397,52 @@
 (defmethod pb->data :default
   [this]
   this)
+
+(defn ->pb
+  [map-type this]
+
+  (data->pb
+   (if (record? this)
+     this
+     (cond
+       (= :FrameworkID map-type) (map->FrameworkID this)
+       (= :OfferID map-type) (map->OfferID this)
+       (= :SlaveID map-type) (map->SlaveID this)
+       (= :TaskID map-type)   (map->TaskID this)
+       (= :ExecutorID map-type) (map->ExecutorID this)
+       (= :ContainerID map-type) (map->ContainerID this)
+       (= :FrameworkInfo map-type) (map->FrameworkInfo this)
+       (= :HealthCheckHTTP map-type) (map->HealthCheckHTTP this)
+       (= :HealthCheck map-type) (map->HealthCheck this)
+       (= :URI map-type) (map->URI this)
+       (= :CommandInfo map-type) (map->CommandInfo this)
+       (= :ExecutorInfo map-type) (map->ExecutorInfo this)
+       (= :MasterInfo map-type)   (map->MasterInfo this)
+       (= :SlaveInfo map-type)    (map->SlaveInfo this)
+       (= :ValueRange map-type)   (map->ValueRange this)
+       (= :ValueRanges map-type)  (map->ValueRanges this)
+       (= :Value map-type)        (map->Value this)
+       (= :Attribute map-type)    (map->Attribute this)
+       (= :Resource map-type)     (map->Resource this)
+       (= :Request map-type)      (map->Request this)
+       (= :Offer map-type)                (map->Offer this)
+       (= :TaskInfo map-type)             (map->TaskInfo this)
+       (= :TaskStatus map-type)           (map->TaskStatus this)
+       (= :Filters map-type)              (map->Filters this)
+       (= :EnvironmentVariable map-type)  (map->EnvironmentVariable this)
+       (= :Environment map-type)          (map->Environment this)
+       (= :Parameter map-type)            (map->Parameter this)
+       (= :Parameters map-type)           (map->Parameter this)
+       (= :Credential map-type)           (map->Credential this)
+       (= :Credentials map-type)          (map->Credentials this)
+       (= :ACLEntity map-type)            (map->ACLEntity this)
+       (= :ACLRegisterFramework map-type) (map->ACLRegisterFramework this)
+       (= :ACLShutdownFramework map-type) (map->ACLShutdownFramework this)
+       (= :ACLRunTask map-type)           (map->ACLRunTask this)
+       (= :ACLs map-type)                 (map->ACLs this)
+       (= :RateLimit map-type)            (map->RateLimit this)
+       (= :RateLimits map-type)           (map->RateLimits this)
+       (= :Volume map-type)               (map->Volume this)
+       (= :PortMapping map-type)          (map->PortMapping this)
+       (= :DockerInfo map-type)           (map->DockerInfo this)
+       (= :ContainerInfo map-type)        (map->ContainerInfo this)))))
