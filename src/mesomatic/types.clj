@@ -81,11 +81,12 @@
 
 (defmethod pb->data Protos$Status
   [^Protos$Status status]
-  (case status
-    Protos$Status/DRIVER_NOT_STARTED :driver-not-started
-    Protos$Status/DRIVER_RUNNING     :driver-running
-    Protos$Status/DRIVER_ABORTED     :driver-aborted
-    Protos$Status/DRIVER_STOPPED     :driver-stopped))
+  (cond
+    (= status Protos$Status/DRIVER_RUNNING)     :driver-running
+    (= status Protos$Status/DRIVER_NOT_STARTED) :driver-not-started
+    (= status Protos$Status/DRIVER_ABORTED)     :driver-aborted
+    (= status Protos$Status/DRIVER_STOPPED)     :driver-stopped
+    :else status))
 
 ;; FrameworkID
 ;; ===========
@@ -429,11 +430,12 @@
 
 (defmethod pb->data Protos$Value$Type
   [^Protos$Value$Type type]
-  (case type
-    Protos$Value$Type/SCALAR :value-scalar
-    Protos$Value$Type/RANGES :value-ranges
-    Protos$Value$Type/SET    :value-set
-    Protos$Value$Type/TEXT   :value-text))
+  (cond
+    (= type Protos$Value$Type/SCALAR) :value-scalar
+    (= type Protos$Value$Type/RANGES) :value-ranges
+    (= type Protos$Value$Type/SET)    :value-set
+    (= type Protos$Value$Type/TEXT)   :value-text
+    :else type))
 
 (defmethod pb->data Protos$Value$Scalar
   [^Protos$Value$Scalar scalar]
@@ -486,8 +488,8 @@
 (defmethod pb->data Protos$Value
   [^Protos$Value v]
   (Value.
-   (.getType v)
-   (.getScalar v)
+   (pb->data (.getType v))
+   (pb->data (.getScalar v))
    (when-let [ranges (.getRanges v)]
      (map pb->data (.getRangeList ranges)))
    (when-let [s (.getSet v)] (pb->data s))
@@ -513,8 +515,8 @@
   [^Protos$Attribute v]
   (Attribute.
    (.getName v)
-   (.getType v)
-   (.getScalar v)
+   (pb->data (.getType v))
+   (pb->data (.getScalar v))
    (when-let [ranges (.getRanges v)]
      (map pb->data (.getRangeList ranges)))
    (when-let [s (.getSet v)] (pb->data s))
@@ -540,8 +542,8 @@
   [^Protos$Resource v]
   (Resource.
    (.getName v)
-   (.getType v)
-   (.getScalar v)
+   (pb->data (.getType v))
+   (pb->data (.getScalar v))
    (when-let [ranges (.getRanges v)]
      (map pb->data (.getRangeList ranges)))
    (when-let [s (.getSet v)] (pb->data s))
@@ -961,64 +963,67 @@
 
 (defmethod pb->data Protos$TaskState
   [^Protos$TaskState status]
-  (case status
-    Protos$TaskState/TASK_STAGING  :task-staging
-    Protos$TaskState/TASK_STARTING :task-starting
-    Protos$TaskState/TASK_RUNNING  :task-running
-    Protos$TaskState/TASK_FINISHED :task-finished
-    Protos$TaskState/TASK_FAILED   :task-failed
-    Protos$TaskState/TASK_KILLED   :task-killed
-    Protos$TaskState/TASK_LOST     :task-lost
-    Protos$TaskState/TASK_ERROR    :task-error
-    nil))
+  (cond
+    (= status Protos$TaskState/TASK_STAGING)  :task-staging
+    (= status Protos$TaskState/TASK_STARTING) :task-starting
+    (= status Protos$TaskState/TASK_RUNNING)  :task-running
+    (= status Protos$TaskState/TASK_FINISHED) :task-finished
+    (= status Protos$TaskState/TASK_FAILED)   :task-failed
+    (= status Protos$TaskState/TASK_KILLED)   :task-killed
+    (= status Protos$TaskState/TASK_LOST)     :task-lost
+    (= status Protos$TaskState/TASK_ERROR)    :task-error
+    :else status))
 
 ;; TaskStatus
 ;; ==========
 
 (defmethod pb->data Protos$TaskStatus$Source
   [^Protos$TaskStatus$Source status]
-  (case status
-    Protos$TaskStatus$Source/SOURCE_MASTER   :source-master
-    Protos$TaskStatus$Source/SOURCE_SLAVE    :source-slave
-    Protos$TaskStatus$Source/SOURCE_EXECUTOR :source-executor))
+  (cond
+    (= status Protos$TaskStatus$Source/SOURCE_MASTER)   :source-master
+    (= status Protos$TaskStatus$Source/SOURCE_SLAVE)    :source-slave
+    (= status Protos$TaskStatus$Source/SOURCE_EXECUTOR) :source-executor
+    :else status))
 
 (defmethod pb->data Protos$TaskStatus$Reason
   [^Protos$TaskStatus$Reason status]
-  (case status
-    Protos$TaskStatus$Reason/REASON_COMMAND_EXECUTOR_FAILED
+
+  (cond
+    (= status Protos$TaskStatus$Reason/REASON_COMMAND_EXECUTOR_FAILED)
     :reason-command-executor-failed
-    Protos$TaskStatus$Reason/REASON_EXECUTOR_TERMINATED
+    (= status Protos$TaskStatus$Reason/REASON_EXECUTOR_TERMINATED)
     :reason-executor-terminated
-    Protos$TaskStatus$Reason/REASON_EXECUTOR_UNREGISTERED
+    (= status Protos$TaskStatus$Reason/REASON_EXECUTOR_UNREGISTERED)
     :reason-executor-unregistered
-    Protos$TaskStatus$Reason/REASON_FRAMEWORD_REMOVED
+    (= status Protos$TaskStatus$Reason/REASON_FRAMEWORK_REMOVED)
     :reason-framework-removed
-    Protos$TaskStatus$Reason/REASON_GC_ERROR
+    (= status Protos$TaskStatus$Reason/REASON_GC_ERROR)
     :reason-gc-error
-    Protos$TaskStatus$Reason/REASON_INVALID_FRAMEWORKID
+    (= status Protos$TaskStatus$Reason/REASON_INVALID_FRAMEWORKID)
     :reason-invalid-frameworkid
-    Protos$TaskStatus$Reason/REASON_INVALID_OFFERS
+    (= status Protos$TaskStatus$Reason/REASON_INVALID_OFFERS)
     :reason-invalid-offers
-    Protos$TaskStatus$Reason/REASON_MASTER_DISCONNECTED
+    (= status Protos$TaskStatus$Reason/REASON_MASTER_DISCONNECTED)
     :reason-master-disconnected
-    Protos$TaskStatus$Reason/REASON_MEMORY_LIMIT
+    (= status Protos$TaskStatus$Reason/REASON_MEMORY_LIMIT)
     :reason-memory-limit
-    Protos$TaskStatus$Reason/REASON_RECONCILIATION
+    (= status Protos$TaskStatus$Reason/REASON_RECONCILIATION)
     :reason-reconciliation
-    Protos$TaskStatus$Reason/REASON_SLAVE_DISCONNECTED
+    (= status Protos$TaskStatus$Reason/REASON_SLAVE_DISCONNECTED)
     :reason-slave-disconnected
-    Protos$TaskStatus$Reason/REASON_SLAVE_REMOVED
+    (= status Protos$TaskStatus$Reason/REASON_SLAVE_REMOVED)
     :reason-slave-removed
-    Protos$TaskStatus$Reason/REASON_SLAVE_RESTARTED
+    (= status Protos$TaskStatus$Reason/REASON_SLAVE_RESTARTED)
     :reason-slave-restarted
-    Protos$TaskStatus$Reason/REASON_SLAVE_UNKNOWN
+    (= status Protos$TaskStatus$Reason/REASON_SLAVE_UNKNOWN)
     :reason-slave-unknown
-    Protos$TaskStatus$Reason/REASON_TASK_INVALID
+    (= status Protos$TaskStatus$Reason/REASON_TASK_INVALID)
     :reason-task-invalid
-    Protos$TaskStatus$Reason/REASON_TASK_UNAUTHORIZED
+    (= status Protos$TaskStatus$Reason/REASON_TASK_UNAUTHORIZED)
     :reason-task-unauthorized
-    Protos$TaskStatus$Reason/REASON_TASK_UNKNOWN
-    :reason-task-unknown))
+    (= status Protos$TaskStatus$Reason/REASON_TASK_UNKNOWN)
+    :reason-task-unknown
+    :else status))
 
 (defrecord TaskStatus [task-id state message source reason
                        data slave-id executor-id timestamp
@@ -1136,10 +1141,11 @@
 
 (defmethod pb->data Protos$ACL$Entity$Type
   [^Protos$ACL$Entity$Type type]
-  (case type
-    Protos$ACL$Entity$Type/SOME :entity-some
-    Protos$ACL$Entity$Type/ANY  :entity-any
-    Protos$ACL$Entity$Type/NONE :entity-none))
+  (cond
+    (= type Protos$ACL$Entity$Type/SOME) :entity-some
+    (= type Protos$ACL$Entity$Type/ANY)  :entity-any
+    (= type Protos$ACL$Entity$Type/NONE) :entity-none
+    :else type))
 
 (defrecord ACLEntity [type values]
   Serializable
@@ -1156,7 +1162,7 @@
 (defmethod pb->data Protos$ACL$Entity
   [^Protos$ACL$Entity entity]
   (ACLEntity.
-   (.getType entity)
+   (pb->data (.getType entity))
    (.getValuesList entity)))
 
 (defrecord ACLRegisterFramework [principals roles]
@@ -1281,9 +1287,10 @@
 
 (defmethod pb->data Protos$Volume$Mode
   [^Protos$Volume$Mode mode]
-  (case mode
-    Protos$Volume$Mode/RW :volume-rw
-    Protos$Volume$Mode/RO :volume-ro))
+  (cond
+    (= mode Protos$Volume$Mode/RW) :volume-rw
+    (= mode Protos$Volume$Mode/RO) :volume-ro
+    :else mode))
 
 (defrecord Volume [container-path host-path mode]
   Serializable
@@ -1298,9 +1305,10 @@
 
 (defmethod pb->data Protos$ContainerInfo$Type
   [^Protos$ContainerInfo$Type type]
-  (case type
-    Protos$ContainerInfo$Type/DOCKER :container-type-docker
-    Protos$ContainerInfo$Type/MESOS  :conatiner-type-mesos))
+  (cond
+    (= type Protos$ContainerInfo$Type/DOCKER) :container-type-docker
+    (= type Protos$ContainerInfo$Type/MESOS)  :conatiner-type-mesos
+    :else type))
 
 (defrecord PortMapping [host-port container-port protocol]
     Serializable
@@ -1320,10 +1328,14 @@
 
 (defmethod pb->data Protos$ContainerInfo$DockerInfo$Network
   [^Protos$ContainerInfo$DockerInfo$Network network]
-  (case network
-    Protos$ContainerInfo$DockerInfo$Network/HOST   :docker-network-host
-    Protos$ContainerInfo$DockerInfo$Network/BRIDGE :docker-network-bridge
-    Protos$ContainerInfo$DockerInfo$Network/NONE   :docker-network-none))
+  (cond
+    (= network Protos$ContainerInfo$DockerInfo$Network/HOST)
+    :docker-network-host
+    (= network Protos$ContainerInfo$DockerInfo$Network/BRIDGE)
+    :docker-network-bridge
+    (= network Protos$ContainerInfo$DockerInfo$Network/NONE)
+    :docker-network-none
+    :else network))
 
 (defrecord DockerInfo [image network port-mappings
                        privileged parameters]
