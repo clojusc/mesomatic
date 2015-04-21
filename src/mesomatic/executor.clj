@@ -15,7 +15,7 @@
 (defprotocol ExecutorDriver
   (abort!                  [this])
   (join!                   [this])
-  (run!                    [this])
+  (run-driver!             [this])
   (send-framework-message! [this data])
   (send-status-update!     [this status])
   (start!                  [this])
@@ -60,7 +60,7 @@
         (pb->data (.abort d)))
       (join! [this]
         (pb->data (.join d)))
-      (run! [this]
+      (run-driver! [this]
         (pb->data (.run d)))
       (send-framework-message! [this data]
         (pb->data (.sendFrameworkMessage d data)))

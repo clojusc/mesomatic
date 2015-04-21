@@ -23,7 +23,7 @@
   (reconcile-tasks         [this statuses])
   (request-resources       [this requests])
   (revive-offers           [this])
-  (run!                    [this])
+  (run-driver!             [this])
   (send-framework-message! [this executor-id slave-id data])
   (start!                  [this])
   (stop!                   [this] [this failover?]))
@@ -112,7 +112,7 @@
          (pb->data (.requestResources d (map data->pb requests))))
        (revive-offers [this]
          (pb->data (.reviveOffers d)))
-       (run! [this]
+       (run-driver! [this]
          (pb->data (.run d)))
        (send-framework-message! [this executor-id slave-id data]
          (pb->data (.sendFrameworkMessage d
