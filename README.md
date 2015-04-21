@@ -1,25 +1,27 @@
-mesomatic: mesos interaction in idiomatic clojure
-=================================================
+mesomatic: the cluster is a library
+===================================
 
 Mesomatic provides facilities to interact with [Apache Mesos](http://mesos.apache.org)
-from clojure. It is essentially a simple facade around the Mesos JAVA API.
+from clojure. It provides a simple and idiomatic facade around the Mesos JAVA API and
+facilities to help when writing mesos frameworks.
 
-Mesomatic versions match the API version they target.
+Mesomatic versions match the API version they target, a trailing minor indicates
+the patch release number, for instance version `0.22.0-r1` will target mesos `0.22.0`.
 
 ## Usage
 
 Add this to your leiningen profile.
 
 ```clojure
-:dependencies [[org.spootnik/mesomatic "0.21.1"]]
+:dependencies [[org.spootnik/mesomatic "0.22.0-r1"]]
 ```
 
 If you want to use the [core.async](https://github.com/clojure/core.async) facade,
 you will need to pull it in as well:
 
 ```clojure
-:dependencies [[org.spootnik/mesomatic       "0.21.1"]
-               [org.spootnik/mesomatic-async "0.21.1"]] 
+:dependencies [[org.spootnik/mesomatic       "0.22.0-r1"]
+               [org.spootnik/mesomatic-async "0.22.0-r1"]]
 ```
                
 ## Namespaces
@@ -29,6 +31,7 @@ you will need to pull it in as well:
 - `mesomatic.executor`: facades for executors and executor-drivers
 - `mesomatic.async.executor`: produce executor callbacks on a channel
 - `mesomatic.async.scheduler`: produce scheduler callbacks on a channel
+- `mesomatic.helpers`: utility helpers for cluster decisions
 
 ## Type conversions
 
