@@ -883,7 +883,7 @@
 ;; ========
 
 (defrecord TaskInfo [name task-id slave-id resources executor command
-                     container data health-check]
+                     container data health-check count maxcol]
     Serializable
     (data->pb [this]
       (-> (Protos$TaskInfo/newBuilder)
