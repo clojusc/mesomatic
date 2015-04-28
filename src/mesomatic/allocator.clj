@@ -138,7 +138,6 @@
   (let [res (reduce allocate-task-naively
                     {:offers (sort (comparator resource-cmp) offers)}
                     (sort (comparator resource-cmp) tasks))]
-    (println (pr-str res))
     (when-not (:failed? res)
       (:payloads res))))
 
