@@ -1,4 +1,4 @@
-(defproject org.spootnik/mesomatic "0.22.0-r1"
+(defproject org.spootnik/mesomatic "0.22.0-r2"
   :description "Apache Mesos type conversions to and from Clojure"
   :url "https://github.com/pyr/mesomatic"
   :license {:name "MIT License"}

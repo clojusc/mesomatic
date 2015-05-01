@@ -46,7 +46,7 @@
 (defn accept-offer
   "Associate a task with an offer's corresponding slave"
   [offer task]
-  (assoc task :slave-id (:slave-id offer)))
+  (assoc task :slave-id (:slave-id offer) :offer-id (:id offer)))
 
 (defn adjustor
   "Yield a function which will adjust a resource record
