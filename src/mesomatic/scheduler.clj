@@ -96,20 +96,20 @@
        (launch-tasks! [this offer-id tasks]
          (pb->data (.launchTasks d
                                  (if (sequential? offer-id)
-                                   (map data->pb offer-id)
-                                   (list (data->pb offer-id)))
-                                 (map data->pb tasks))))
+                                   (mapv data->pb offer-id)
+                                   (vector (data->pb offer-id)))
+                                 (mapv data->pb tasks))))
        (launch-tasks! [this offer-id tasks filters]
          (pb->data (.launchTasks d
                                  (if (sequential? offer-id)
-                                   (data->pb offer-id)
-                                   (list (data->pb offer-id)))
-                                 (map data->pb tasks)
+                                   (mapv data->pb offer-id)
+                                   (vector (data->pb offer-id)))
+                                 (mapv data->pb tasks)
                                  (data->pb filters))))
        (reconcile-tasks [this statuses]
-         (pb->data (.reconcileTasks d (map data->pb statuses))))
+         (pb->data (.reconcileTasks d (mapv data->pb statuses))))
        (request-resources [this requests]
-         (pb->data (.requestResources d (map data->pb requests))))
+         (pb->data (.requestResources d (mapv data->pb requests))))
        (revive-offers [this]
          (pb->data (.reviveOffers d)))
        (run-driver! [this]
