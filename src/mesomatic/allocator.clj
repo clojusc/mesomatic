@@ -100,10 +100,10 @@
      [ T2:(O1,O2) T3(O1,O3) T1(O1) ]"
 
   [acc {:keys [count] :or {count 1} :as task}]
-  (loop [[offer & offers] (:offers acc)
-         payloads         []
-         adjusted         nil
-         [global local]   [0 0]]
+  (loop [[offer & offers :as untouched] (:offers acc)
+         payloads                       []
+         adjusted                       nil
+         [global local]                 [0 0]]
     (cond
       ;; Cannot properly allocate this task
       ;; Fail altogether.
@@ -113,8 +113,8 @@
       ;; We're done with this task.
       (>= global count)
       (-> acc
-          (assoc :offers adjusted)
-          (update :payloads concat payloads))
+          (assoc :offers (into (vec adjusted) untouched))
+          (update :payloads into payloads))
 
       ;; Too many collocated tasks, skip to next offer.
       (and (:maxcol task) (>= local (:maxcol task)))
