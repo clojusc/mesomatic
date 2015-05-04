@@ -1296,7 +1296,7 @@
         (cond->
             hostname (.setHostname (str hostname))
             docker   (.setDocker (->pb :DockerInfo docker)))
-        (.addVolumes (map (partial ->pb :Volume) volumes))
+        (.addAllVolumes (map (partial ->pb :Volume) volumes))
         (.build))))
 
 ;; Safe for the common stuff in extend-protocol, this marks the end of
