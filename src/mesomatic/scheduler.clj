@@ -42,7 +42,7 @@
     (disconnected [this driver]
       (disconnected implementation driver))
     (resourceOffers [this driver offers]
-      (resource-offers implementation driver (map pb->data offers)))
+      (resource-offers implementation driver (mapv pb->data offers)))
     (offerRescinded [this driver offer-id]
       (offer-rescinded implementation driver (pb->data offer-id)))
     (statusUpdate [this driver status]
