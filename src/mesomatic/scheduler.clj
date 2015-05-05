@@ -1,5 +1,5 @@
 (ns mesomatic.scheduler
-  (:require [mesomatic.types :refer [data->pb pb->data]])
+  (:require [mesomatic.types :refer [data->pb pb->data ->pb]])
   (:import org.apache.mesos.MesosSchedulerDriver))
 
 (defprotocol Scheduler
@@ -74,50 +74,52 @@
   ([scheduler framework master credential]
    (let [d (if credential
              (MesosSchedulerDriver. scheduler
-                                    (data->pb framework)
+                                    (->pb :FrameworkInfo framework)
                                     master
-                                    (data->pb credential))
+                                    (->pb :Credential credential))
              (MesosSchedulerDriver. scheduler
-                                    (data->pb framework)
+                                    (->pb :FrameworkInfo framework)
                                     master))]
      (reify SchedulerDriver
        (abort! [this]
          (pb->data (.abort d)))
        (decline-offer [this offer-id]
-         (pb->data (.declineOffer d (data->pb offer-id))))
+         (pb->data (.declineOffer d (->pb :OfferID offer-id))))
        (decline-offer [this offer-id filters]
          (pb->data (.declineOffer d
-                                  (data->pb offer-id)
-                                  (data->pb filters))))
+                                  (->pb :OfferID offer-id)
+                                  (->pb :Filters filters))))
        (join! [this]
          (pb->data (.join d)))
        (kill-task! [this task-id]
-         (pb->data (.killTask d (data->pb task-id))))
+         (pb->data (.killTask d (->pb :TaskID task-id))))
        (launch-tasks! [this offer-id tasks]
          (pb->data (.launchTasks d
                                  (if (sequential? offer-id)
-                                   (mapv data->pb offer-id)
-                                   (vector (data->pb offer-id)))
-                                 (mapv data->pb tasks))))
+                                   (mapv (partial ->pb :OfferID) offer-id)
+                                   (vector (->pb :OfferID offer-id)))
+                                 (mapv (partial ->pb :TaskInfo) tasks))))
        (launch-tasks! [this offer-id tasks filters]
          (pb->data (.launchTasks d
                                  (if (sequential? offer-id)
-                                   (mapv data->pb offer-id)
-                                   (vector (data->pb offer-id)))
-                                 (mapv data->pb tasks)
-                                 (data->pb filters))))
+                                   (mapv (partial ->pb :OfferID) offer-id)
+                                   (vector (->pb :OfferID offer-id)))
+                                 (mapv (partial ->pb :TaskInfo) tasks)
+                                 (->pb :Filters filters))))
        (reconcile-tasks [this statuses]
-         (pb->data (.reconcileTasks d (mapv data->pb statuses))))
+         (pb->data
+          (.reconcileTasks d (mapv (partial ->pb :TaskStatus) statuses))))
        (request-resources [this requests]
-         (pb->data (.requestResources d (mapv data->pb requests))))
+         (pb->data
+          (.requestResources d (mapv (partial ->pb :Request) requests))))
        (revive-offers [this]
          (pb->data (.reviveOffers d)))
        (run-driver! [this]
          (pb->data (.run d)))
        (send-framework-message! [this executor-id slave-id data]
          (pb->data (.sendFrameworkMessage d
-                                          (pb->data executor-id)
-                                          (pb->data slave-id)
+                                          (->pb :ExecutorID executor-id)
+                                          (->pb :SlaveID slave-id)
                                           data)))
        (start! [this]
          (pb->data (.start d)))
