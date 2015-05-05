@@ -11,6 +11,12 @@
      fulfill requirements was found. Allocation should not yield partial
      results.
 
+     Resources taken into account are:
+
+     - cpus
+     - mem
+     - port ranges
+
      tasks is a list of mesomatic.types/TaskInfo
      offers is a list of mesomatic.types/Offer"))
 
@@ -19,6 +25,20 @@
   (let [rmap (zipmap (map :name rlist)
                      (map :scalar rlist))]
     (get rmap name)))
+
+(defn get-ranges
+  [rlist name]
+  (let [rmap (zipmap (map :name rlist)
+                     (map :ranges rlist))]
+    (get rmap name)))
+
+(defn get-ports
+  [rlist]
+  (reduce
+   + 0
+   (for [{:keys [begin end] :as range} (get-ranges rlist "ports")
+         :when range]
+     (- end begin))))
 
 (defn resource-factor
   "Compute an integral resource factor to help
@@ -41,21 +61,63 @@
    (>= (get-scalar (:resources offer) "cpus")
        (get-scalar (:resources task)  "cpus"))
    (>= (get-scalar (:resources offer) "mem")
-       (get-scalar (:resources task)  "mem"))))
+       (get-scalar (:resources task)  "mem"))
+   (>= (get-ports (:resources offer))
+       (get-ports (:resources task)))))
+
+(defn accept-ports
+  "Eat up as many ports as specified in the first port
+   range. Notice that only the first port range is considered
+   for now."
+  [resources ports]
+  (vec
+   (for [{:keys [name ranges] :as resource} resources]
+     (if (= name "ports")
+       (let [offer-begin (-> ports first :begin)
+             [{:keys [begin end]}] ranges]
+         (assoc resource :ranges
+                [{:begin (+ begin offer-begin)
+                  :end   (+ end offer-begin)}]))
+       resource))))
+
+(defn map-ports
+  [port-mappings ports]
+  (let [begin (-> ports first :begin)]
+    (vec
+     (for [[{:keys [host-port container-port protocol]} i]
+           (partition 2 (interleave port-mappings
+                                    (range begin Long/MAX_VALUE)))]
+       {:host-port (or host-port i)
+        :container-port container-port
+        :protocol protocol}))))
 
 (defn accept-offer
-  "Associate a task with an offer's corresponding slave"
+  "Associate a task with an offer's corresponding slave."
   [offer task]
-  (assoc task :slave-id (:slave-id offer) :offer-id (:id offer)))
+  (let [ports (get-ranges (:resources offer) "ports")]
+    (-> task
+        (assoc :slave-id (:slave-id offer))
+        (assoc :offer-id (:id offer))
+        (update :resources accept-ports ports)
+        (cond-> (= (-> task :container :type) :container-type-docker)
+          (update-in [:container :docker :port-mappings] map-ports ports)))))
+
+(defn adjust-ports
+  "Adjust port range. Notice that only the first range
+   is considered."
+  [ranges want]
+  (let [[{:keys [begin end]}] ranges]
+    [{:begin (+ begin want) :end end}]))
 
 (defn adjustor
   "Yield a function which will adjust a resource record
    when appropriate."
-  [cpus mem]
+  [cpus mem ports]
   (fn [{:keys [type] :as record}]
     (cond
       (= type "mem")  (update record :scalar - mem)
       (= type "cpus") (update record :scalar - cpus)
+      (= type "ports") (update record :ranges adjust-ports ports)
       :else record)))
 
 (defn adjust-offer
@@ -63,8 +125,9 @@
   [offer task]
   (let [cpus      (get-scalar (:resources task) "cpus")
         mem       (get-scalar (:resources task) "mem")
+        ports     (get-ports (:resources task))
         resources (:resources offer)]
-    (assoc offer :resources (map (adjustor cpus mem) resources))))
+    (assoc offer :resources (map (adjustor cpus mem ports) resources))))
 
 (defn allocate-task-naively
   "Allocate a task's worth of necessary resources.
