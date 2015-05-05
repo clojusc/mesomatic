@@ -186,7 +186,7 @@
   Serializable
   (data->pb [this]
     (-> (Protos$FrameworkInfo/newBuilder)
-        (.setUser (str (or name "")))
+        (.setUser (str (or user "")))
         (.setName (str name))
         (cond->
             id               (.setId (->pb :FrameworkID id))
