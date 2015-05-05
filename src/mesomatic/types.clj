@@ -1001,6 +1001,21 @@
             healthy     (.setHealthy (boolean healthy)))
         (.build))))
 
+(defmethod pb->data Protos$TaskStatus
+  [^Protos$TaskStatus status]
+  (TaskStatus.
+   (pb->data (.getTaskId status))
+   (pb->data (.getState status))
+   (.getMessage status)
+   (pb->data (.getSource status))
+   (pb->data (.getReason status))
+   (.getData status)
+   (pb->data (.getSlaveId status))
+   (pb->data (.getExecutorId status))
+   (.getTimestamp status)
+   (.getUuid status)
+   (.getHealthy status)))
+
 ;; Filters
 ;; =======
 
