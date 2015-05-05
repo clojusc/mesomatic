@@ -40,6 +40,7 @@ To go to and from protobuf types, mesomatic uses two simple functions:
 - `pb->data`: yields a data structure from a mesos type, usually in the form of
               a record.
 - `data->pb`: converts a data structure to a mesos type.
+- `->pb`: convert a plain map to a mesos type hinted at by a keyword
 
 By yielding records, mesomatic provides elements which are homomorphic to
 maps and can easily be converted back to protobuf.
