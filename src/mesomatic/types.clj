@@ -296,11 +296,11 @@
   (data->pb [this]
     (-> (Protos$CommandInfo/newBuilder)
         (cond->
-            container   (.setContainer (->pb :ContainerInfo container))
-            environment (.setEnvironment (->pb :Environment environment))
-            shell       (.setShell (boolean shell))
-            value       (.setValue (str value))
-            user        (.setUser (str user)))
+            container          (.setContainer (->pb :ContainerInfo container))
+            environment        (.setEnvironment (->pb :Environment environment))
+            (not (nil? shell)) (.setShell (boolean shell))
+            value              (.setValue (str value))
+            user               (.setUser (str user)))
         (.addAllArguments (map str arguments))
         (.addAllUris (map (partial ->pb :URI) uris))
         (.build))))
