@@ -1317,15 +1317,21 @@
 ;; keywords, as well as Scalars from their value.
 
 (extend-protocol Serializable
+  java.lang.Integer
+  (data->pb [this]
+    (-> (Protos$Value$Scalar/newBuilder)
+        (.setValue (double this))
+        (.build)))
+  java.lang.Long
+  (data->pb [this]
+    (-> (Protos$Value$Scalar/newBuilder)
+        (.setValue (double this))
+        (.build)))
   java.lang.Double
   (data->pb [this]
     (-> (Protos$Value$Scalar/newBuilder)
         (.setValue this)
         (.build)))
-  clojure.lang.PersistentArrayMap
-  (data->pb [this]
-)
-
   clojure.lang.PersistentHashSet
   (data->pb [this]
     (-> (Protos$Value$Set/newBuilder)
