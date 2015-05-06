@@ -92,12 +92,16 @@
         :protocol protocol}))))
 
 (defn accept-offer
-  "Associate a task with an offer's corresponding slave."
-  [offer task]
-  (let [ports (get-ranges (:resources offer) "ports")]
+  "Associate a task with an offer's corresponding slave.
+   When allocating multiple instances of a task (for daemons) and
+   the task-id field is a vector get the appropriate member of the vector"
+  [offer task pos]
+  (let [ports   (get-ranges (:resources offer) "ports")
+        get-pos (fn [ids] (if (vector? ids) (nth ids pos) ids))]
     (-> task
         (assoc :slave-id (:slave-id offer))
         (assoc :offer-id (:id offer))
+        (update :task-id get-pos pos)
         (update :resources accept-ports ports)
         (cond-> (= (-> task :container :type) :container-type-docker)
           (update-in [:container :docker :port-mappings] map-ports ports)))))
@@ -186,7 +190,7 @@
       ;; We have a match, record it.
       (offer-matches? offer task)
       (recur (conj offers   (adjust-offer offer task))
-             (conj payloads (accept-offer offer task))
+             (conj payloads (accept-offer offer task global))
              adjusted
              [(inc global) (inc local)])
 
