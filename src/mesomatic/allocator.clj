@@ -38,7 +38,7 @@
    + 0
    (for [{:keys [begin end] :as range} (get-ranges rlist "ports")
          :when range]
-     (- end begin))))
+     (inc (- end begin)))))
 
 (defn resource-factor
   "Compute an integral resource factor to help
