@@ -44,7 +44,8 @@
                    :maxcol 1}]
 
     (testing "cannot satisfy workload"
-      (is (= nil (allocate-naively (take 1 offers) [task-info]))))
+      (is (= nil (allocate-naively (take 1 offers) [task-info])))
+      (is (= nil (allocate-naively offers (repeat 100 task-info)))))
 
     (testing "successful allocation"
       (is (= 2 (count (allocate-naively offers [task-info]))))
