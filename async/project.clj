@@ -1,4 +1,4 @@
-(defproject org.spootnik/mesomatic-async "0.22.1-r0"
+(defproject spootnik/mesomatic-async "0.22.1-r0"
   :description "asynchronous facade for mesomatic"
   :url "https://github.com/pyr/mesomatic"
   :license {:name "MIT License"}

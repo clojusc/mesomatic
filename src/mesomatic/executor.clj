@@ -54,7 +54,7 @@
 
 (defn executor-driver
   [executor]
-  (let [d (MesosExecutorDriver. executor)]
+  (let [d (MesosExecutorDriver. (->pb :ExecutorInfo executor))]
     (reify ExecutorDriver
       (abort! [this]
         (pb->data (.abort d)))
