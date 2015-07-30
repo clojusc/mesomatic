@@ -1,5 +1,5 @@
 (ns mesomatic.executor
-  (:require [mesomatic.types :refer [data->pb pb->data]])
+  (:require [mesomatic.types :refer [data->pb pb->data ->pb]])
   (:import org.apache.mesos.MesosExecutorDriver))
 
 (defprotocol Executor
