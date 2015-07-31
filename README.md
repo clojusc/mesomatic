@@ -1,6 +1,8 @@
 mesomatic: the cluster is a library
 ===================================
 
+[![Build Status](https://secure.travis-ci.org/pyr/mesomatic.png)](http://travis-ci.org/pyr/mesomatic)
+
 Mesomatic provides facilities to interact with [Apache Mesos](http://mesos.apache.org)
 from clojure. It provides a simple and idiomatic facade around the Mesos JAVA API and
 facilities to help when writing mesos frameworks.
