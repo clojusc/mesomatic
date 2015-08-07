@@ -1335,7 +1335,7 @@
   clojure.lang.PersistentHashSet
   (data->pb [this]
     (-> (Protos$Value$Set/newBuilder)
-        (.addAllItems (seq this))
+        (.addAllItem (seq this))
         (.build)))
   java.lang.String
   (data->pb [this]
