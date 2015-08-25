@@ -506,7 +506,7 @@
         (cond->
             scalar (.setScalar (data->pb scalar))
             ranges (.setRanges (data->pb (ValueRanges. ranges)))
-            (not (empty? set))    (.setSet (data->pb set))
+            (seq set)    (.setSet (data->pb set))
             role   (.setRole role))
         (.build))))
 
