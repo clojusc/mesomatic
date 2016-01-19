@@ -9,6 +9,7 @@
            org.apache.mesos.Protos$ContainerID
            org.apache.mesos.Protos$FrameworkInfo
            org.apache.mesos.Protos$FrameworkInfo$Capability
+           org.apache.mesos.Protos$FrameworkInfo$Capability$Type
            org.apache.mesos.Protos$HealthCheck
            org.apache.mesos.Protos$HealthCheck$HTTP
            org.apache.mesos.Protos$CommandInfo
@@ -59,7 +60,14 @@
            org.apache.mesos.Protos$ContainerInfo$Type
            org.apache.mesos.Protos$ContainerInfo$DockerInfo
            org.apache.mesos.Protos$ContainerInfo$DockerInfo$Network
-           org.apache.mesos.Protos$ContainerInfo$DockerInfo$PortMapping))
+           org.apache.mesos.Protos$ContainerInfo$DockerInfo$PortMapping
+           org.apache.mesos.Protos$Port
+           org.apache.mesos.Protos$Ports
+           org.apache.mesos.Protos$DiscoveryInfo
+           org.apache.mesos.Protos$DiscoveryInfo$Visibility
+           org.apache.mesos.Protos$Label
+           org.apache.mesos.Protos$Labels
+           ))
 
 ;; Our two exported signatures: data->pb and pb->data
 
@@ -312,11 +320,11 @@
         (.setType (data->pb type))
         (.build))))
 
-(defmethod data->pb Protos$FrameworkInfo$Capability
+(defmethod pb->data Protos$FrameworkInfo$Capability
   [^Protos$FrameworkInfo$Capability capa]
-  (FrameworkCapability. (.getType capa)))
+  (FrameworkCapability. (pb->data (.getType capa))))
 
-(defmethod data->pb Protos$FrameworkInfo$Capability$Type
+(defmethod pb->data Protos$FrameworkInfo$Capability$Type
   [^Protos$FrameworkInfo$Capability$Type type]
   (cond
     (= Protos$FrameworkInfo$Capability$Type/REVOCABLE_RESOURCES type)
@@ -437,8 +445,7 @@
    (.getImage container)
    (.getOptionsList container)))
 
-(defrecord CommandInfo [container uris environment
-                        shell value arguments user]
+(defrecord CommandInfo [uris environment shell value arguments user]
   Serializable
   (data->pb [this]
     (-> (Protos$CommandInfo/newBuilder)
@@ -1054,7 +1061,7 @@
   Serializable
   (data->pb [this]
     (-> (Protos$Ports/newBuilder)
-        (.addAllPorts (mapv (partial->pb :Port ports)))
+        (.addAllPorts (mapv (partial ->pb :Port ports)))
         (.build))))
 
 (defmethod pb->data Protos$Ports
@@ -1074,6 +1081,7 @@
                 environment (.setEnvionment (str environment))
                 location    (.setLocation (str location))
                 ports       (.setPorts (->pb :Ports ports))
+                version     (.setVersion (str version))
                 labels      (.setLabels (->pb :Labels labels))))))
 
 (defmethod pb->data Protos$DiscoveryInfo
@@ -1082,6 +1090,7 @@
                   (.getName di)
                   (.getEnvironment di)
                   (.getLocation di)
+                  (.getVersion di)
                   (when-let [ports (.getPorts di)] (pb->data ports))
                   (when-let [labels (.getLabels di)] (pb->data labels))))
 
@@ -1177,8 +1186,6 @@
     :reason-invalid-offers
     (= status Protos$TaskStatus$Reason/REASON_MASTER_DISCONNECTED)
     :reason-master-disconnected
-    (= status Protos$TaskStatus$Reason/REASON_MEMORY_LIMIT)
-    :reason-memory-limit
     (= status Protos$TaskStatus$Reason/REASON_RECONCILIATION)
     :reason-reconciliation
     (= status Protos$TaskStatus$Reason/REASON_SLAVE_DISCONNECTED)
@@ -1319,94 +1326,6 @@
 (defmethod pb->data Protos$Credentials
   [^Protos$Credentials c]
   (Credentials. (mapv pb->data (.getCredentialsList c))))
-
-;; ACL
-;; ===
-
-(defmethod pb->data Protos$ACL$Entity$Type
-  [^Protos$ACL$Entity$Type type]
-  (cond
-    (= type Protos$ACL$Entity$Type/SOME) :entity-some
-    (= type Protos$ACL$Entity$Type/ANY)  :entity-any
-    (= type Protos$ACL$Entity$Type/NONE) :entity-none
-    :else type))
-
-(defrecord ACLEntity [type values]
-  Serializable
-  (data->pb [this]
-    (-> (Protos$ACL$Entity/newBuilder)
-        (cond-> type (.setType (data->pb type)))
-        (.addAllValues (mapv str values))
-        (.build))))
-
-(defmethod pb->data Protos$ACL$Entity
-  [^Protos$ACL$Entity entity]
-  (ACLEntity.
-   (pb->data (.getType entity))
-   (.getValuesList entity)))
-
-(defrecord ACLRegisterFramework [principals roles]
-  Serializable
-  (data->pb [this]
-    (-> (Protos$ACL$RegisterFramework/newBuilder)
-        (.setPrincipals (->pb :ACLEntity principals))
-        (.setRoles (->pb :ACLEntity roles))
-        (.build))))
-
-(defmethod pb->data Protos$ACL$RegisterFramework
-  [^Protos$ACL$RegisterFramework framework]
-  (ACLRegisterFramework.
-   (pb->data (.getPrincipals framework))
-   (pb->data (.getRoles framework))))
-
-(defrecord ACLRunTask [principals users]
-  Serializable
-  (data->pb [this]
-    (-> (Protos$ACL$RunTask/newBuilder)
-        (.setPrincipals (->pb :ACLEntity principals))
-        (.setUsers (->pb :ACLEntity users))
-        (.build))))
-
-(defmethod pb->data Protos$ACL$RunTask
-  [^Protos$ACL$RunTask run-task]
-  (ACLRunTask.
-   (pb->data (.getPrincipals run-task))
-   (pb->data (.getUsers run-task))))
-
-(defrecord ACLShutdownFramework [principals framework-principals]
-  Serializable
-  (data->pb [this]
-    (-> (Protos$ACL$ShutdownFramework/newBuilder)
-        (.setPrincipals (->pb :ACLEntity principals))
-        (.setFrameworkPrincipals (->pb :ACLEntity framework-principals))
-        (.build))))
-
-(defmethod pb->data Protos$ACL$ShutdownFramework
-  [^Protos$ACL$ShutdownFramework framework]
-  (ACLShutdownFramework.
-   (pb->data (.getPrincipals framework))
-   (pb->data (.getFrameworkPrincipals framework))))
-
-(defrecord ACLs [permissive register-frameworks
-                 run-tasks shutdown-frameworks]
-  Serializable
-  (data->pb [this]
-    (-> (Protos$ACLs/newBuilder)
-        (cond-> (not (nil? permissive)) (.setPermissive (boolean permissive)))
-        (.addAllRegisterFrameworks (mapv (partial ->pb :ACLRegisterFramework)
-                                         register-frameworks))
-        (.addAllShutdownFrameworks (mapv (partial ->pb :ACLShutdownFramework)
-                                         shutdown-frameworks))
-        (.addAllRunTasks (mapv (partial ->pb :ACLRunTask) run-tasks))
-        (.build))))
-
-(defmethod pb->data Protos$ACLs
-  [^Protos$ACLs acls]
-  (ACLs.
-   (.getPermissive acls)
-   (.getRegisterFrameworks acls)
-   (.getRunTasks acls)
-   (.getShutdownFrameworks acls)))
 
 ;; RateLimit
 ;; =========
@@ -1600,9 +1519,6 @@
       :value-ranges             Protos$Value$Type/RANGES
       :value-set                Protos$Value$Type/SET
       :value-text               Protos$Value$Type/TEXT
-      :entity-some              Protos$ACL$Entity$Type/SOME
-      :entity-any               Protos$ACL$Entity$Type/ANY
-      :entity-none              Protos$ACL$Entity$Type/NONE
       :volume-rw                Protos$Volume$Mode/RW
       :volume-ro                Protos$Volume$Mode/RO
       :docker-network-host      Protos$ContainerInfo$DockerInfo$Network/HOST
@@ -1643,8 +1559,6 @@
       :reason-master-disconnected
       Protos$TaskStatus$Reason/REASON_MASTER_DISCONNECTED
       :reason-memory-limit
-      Protos$TaskStatus$Reason/REASON_MEMORY_LIMIT
-      :reason-reconciliation
       Protos$TaskStatus$Reason/REASON_RECONCILIATION
       :reason-slave-disconnected
       Protos$TaskStatus$Reason/REASON_SLAVE_DISCONNECTED
@@ -1707,11 +1621,6 @@
        (= :Parameters map-type)           (map->Parameter this)
        (= :Credential map-type)           (map->Credential this)
        (= :Credentials map-type)          (map->Credentials this)
-       (= :ACLEntity map-type)            (map->ACLEntity this)
-       (= :ACLRegisterFramework map-type) (map->ACLRegisterFramework this)
-       (= :ACLShutdownFramework map-type) (map->ACLShutdownFramework this)
-       (= :ACLRunTask map-type)           (map->ACLRunTask this)
-       (= :ACLs map-type)                 (map->ACLs this)
        (= :RateLimit map-type)            (map->RateLimit this)
        (= :RateLimits map-type)           (map->RateLimits this)
        (= :Volume map-type)               (map->Volume this)
