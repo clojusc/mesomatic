@@ -8,6 +8,8 @@
            org.apache.mesos.Protos$ExecutorID
            org.apache.mesos.Protos$ContainerID
            org.apache.mesos.Protos$FrameworkInfo
+           org.apache.mesos.Protos$FrameworkInfo$Capability
+           org.apache.mesos.Protos$FrameworkInfo$Capability$Type
            org.apache.mesos.Protos$HealthCheck
            org.apache.mesos.Protos$HealthCheck$HTTP
            org.apache.mesos.Protos$CommandInfo
@@ -42,22 +44,30 @@
            org.apache.mesos.Protos$Parameters
            org.apache.mesos.Protos$Credential
            org.apache.mesos.Protos$Credentials
-           org.apache.mesos.Protos$ACL
-           org.apache.mesos.Protos$ACL$Entity
-           org.apache.mesos.Protos$ACL$Entity$Type
-           org.apache.mesos.Protos$ACL$RegisterFramework
-           org.apache.mesos.Protos$ACL$RunTask
-           org.apache.mesos.Protos$ACL$ShutdownFramework
-           org.apache.mesos.Protos$ACLs
            org.apache.mesos.Protos$RateLimit
            org.apache.mesos.Protos$RateLimits
+           org.apache.mesos.Protos$TimeInfo
+           org.apache.mesos.Protos$DurationInfo
+           org.apache.mesos.Protos$Address
+           org.apache.mesos.Protos$URL
+           org.apache.mesos.Protos$Unavailability
+           org.apache.mesos.Protos$MachineID
+           org.apache.mesos.Protos$MachineInfo
+           org.apache.mesos.Protos$MachineInfo$Mode
            org.apache.mesos.Protos$Volume
            org.apache.mesos.Protos$Volume$Mode
            org.apache.mesos.Protos$ContainerInfo
            org.apache.mesos.Protos$ContainerInfo$Type
            org.apache.mesos.Protos$ContainerInfo$DockerInfo
            org.apache.mesos.Protos$ContainerInfo$DockerInfo$Network
-           org.apache.mesos.Protos$ContainerInfo$DockerInfo$PortMapping))
+           org.apache.mesos.Protos$ContainerInfo$DockerInfo$PortMapping
+           org.apache.mesos.Protos$Port
+           org.apache.mesos.Protos$Ports
+           org.apache.mesos.Protos$DiscoveryInfo
+           org.apache.mesos.Protos$DiscoveryInfo$Visibility
+           org.apache.mesos.Protos$Label
+           org.apache.mesos.Protos$Labels
+           ))
 
 ;; Our two exported signatures: data->pb and pb->data
 
@@ -177,12 +187,151 @@
   [^Protos$ContainerID id]
   (ContainerID. (.getValue id)))
 
+;; TimeInfo
+;; ========
+
+(defrecord TimeInfo [nanoseconds]
+  Serializable
+  (data->pb [this]
+    (-> (Protos$TimeInfo/newBuilder)
+        (.setNanoseconds (long nanoseconds))
+        (.build))))
+
+(defmethod pb->data Protos$TimeInfo
+  [^Protos$TimeInfo time]
+  (TimeInfo. (.getNanoseconds time)))
+
+;; DurationInfo
+;; ============
+
+(defrecord DurationInfo [nanoseconds]
+  Serializable
+  (data->pb [this]
+    (-> (Protos$DurationInfo/newBuilder)
+        (.setNanoseconds (long nanoseconds))
+        (.build))))
+
+(defmethod pb->data Protos$DurationInfo
+  [^Protos$DurationInfo duration]
+  (DurationInfo. (.getNanoseconds duration)))
+
+;; Address
+;; =======
+
+(defrecord Address [hostname ip port]
+  Serializable
+  (data->pb [this]
+    (-> (Protos$Address/newBuilder)
+        (.setPort (int port))
+        (cond->
+            hostname (.setHostname (str hostname))
+            ip       (.setIp (str ip)))
+        (.build))))
+
+(defmethod pb->data Protos$Address
+  [^Protos$Address address]
+  (Address. (.getHostname address) (.getIp address) (.getPort address)))
+
+;; URL
+;; ===
+
+(defrecord URL [scheme address path query fragment]
+  Serializable
+  (data->pb [this]
+    (-> (Protos$URL/newBuilder)
+        (.setScheme (str scheme))
+        (.setAddress (->pb :Address address))
+        (.addAllQueries (mapv (partial ->pb :Parameter) query))
+        (cond-> fragment (.setFragment (str fragment)))
+        (.build))))
+
+(defmethod pb->data Protos$URL
+  [^Protos$URL url]
+  (URL. (.getScheme url)
+        (pb->data (.getAddress url))
+        (.getPath url)
+        (mapv pb->data (.getQueriesList url))
+        (.getFragment url)))
+
+;; Unavailability
+;; ==============
+
+(defrecord Unavailability [start duration]
+  Serializable
+  (data->pb [this]
+    (-> (Protos$Unavailability/newBuilder)
+        (.setStart (->pb :TimeInfo start))
+        (cond-> duration (.setDuration (->pb :Duration duration)))
+        (.build))))
+
+(defmethod pb->data Protos$Unavailability
+  [^Protos$Unavailability una]
+  (Unavailability. (.getStart una) (.getDuration una)))
+
+
+;; MachineID
+;; =========
+
+(defrecord MachineID [hostname ip]
+  Serializable
+  (data->pb [this]
+    (-> (Protos$MachineID/newBuilder)
+        (cond-> hostname (.setHostname (str hostname))
+                ip       (.setIp (str ip)))
+        (.build))))
+
+(defmethod pb->data Protos$MachineID
+  [^Protos$MachineID mid]
+  (MachineID. (.getHostname mid) (.getIp mid)))
+
+;; MachineInfo
+;; ===========
+
+(defmethod pb->data Protos$MachineInfo$Mode
+  [^Protos$MachineInfo$Mode mode]
+  (cond
+    (= Protos$MachineInfo$Mode/UP mode)       :machine-mode-up
+    (= Protos$MachineInfo$Mode/DRAINING mode) :machine-mode-draining
+    (= Protos$MachineInfo$Mode/DOWN mode)     :machine-mode-down))
+
+(defrecord MachineInfo [id mode unavailability]
+  Serializable
+  (data->pb [this]
+    (-> (Protos$MachineInfo/newBuilder)
+        (.setId (->pb :MachineID id))
+        (cond->
+            mode           (.setMode (data->pb mode))
+            unavailability (.setUnavailability
+                            (->pb :Unavailability unavailability))))))
+
+(defmethod pb->data Protos$MachineInfo
+  [^Protos$MachineInfo minfo]
+  (MachineInfo. (pb->data (.getId minfo))
+                (pb->data (.getMode minfo))
+                (pb->data (.getUnavailability minfo))))
+
 ;; FrameworkInfo
 ;; =============
 
+(defrecord FrameworkCapability [type]
+  Serializable
+  (data->pb [this]
+    (-> (Protos$FrameworkInfo$Capability/newBuilder)
+        (.setType (data->pb type))
+        (.build))))
+
+(defmethod pb->data Protos$FrameworkInfo$Capability
+  [^Protos$FrameworkInfo$Capability capa]
+  (FrameworkCapability. (pb->data (.getType capa))))
+
+(defmethod pb->data Protos$FrameworkInfo$Capability$Type
+  [^Protos$FrameworkInfo$Capability$Type type]
+  (cond
+    (= Protos$FrameworkInfo$Capability$Type/REVOCABLE_RESOURCES type)
+    :framework-capability-revocable-resource))
 
 (defrecord FrameworkInfo [user name id failover-timeout checkpoint role
-                          hostname principal webui-url]
+                          hostname principal webui-url capabilities labels]
   Serializable
   (data->pb [this]
     (-> (Protos$FrameworkInfo/newBuilder)
@@ -191,11 +340,14 @@
         (cond->
             id               (.setId (->pb :FrameworkID id))
             failover-timeout (.setFailoverTimeout (double failover-timeout))
+            (not (nil? checkpoint)) (.setCheckpoint (boolean checkpoint))
             role             (.setRole (str role))
             hostname         (.setHostname (str hostname))
             principal        (.setPrincipal (str principal))
-            webui-url        (.setWebuiUrl (str webui-url))
-            (not (nil? checkpoint)) (.setCheckpoint (boolean checkpoint)))
+            webui-url        (.setWebuiUrl (str webui-url)))
+        (.addAllCapabilities (mapv (partial ->pb :FrameworkCapability)
+                                   capabilities))
+        (.addAllLabels (mapv (partial ->pb :Label) labels))
         (.build))))
 
 (defmethod pb->data Protos$FrameworkInfo
@@ -209,7 +361,9 @@
    (.getRole info)
    (.getHostname info)
    (.getPrincipal info)
-   (.getWebuiUrl info)))
+   (.getWebuiUrl info)
+   (mapv pb->data (.getAllCapabilities info))
+   (mapv pb->data (.getAllLabels info))))
 
 ;; HealthCheck
 ;; ===========
@@ -262,19 +416,20 @@
 ;; CommandInfo
 ;; ===========
 
-(defrecord URI [value executable extract]
+(defrecord URI [value executable extract cache]
   Serializable
   (data->pb [this]
     (-> (Protos$CommandInfo$URI/newBuilder)
         (.setValue (str value))
         (cond->
             (not (nil? executable)) (.setExecutable (boolean executable))
-            (not (nil? extract))    (.setExtract (boolean extract)))
+            (not (nil? extract))    (.setExtract (boolean extract))
+            (not (nil? cache))      (.setCache (boolean cache)))
         (.build))))
 
 (defmethod pb->data Protos$CommandInfo$URI
   [^Protos$CommandInfo$URI uri]
-  (URI. (.getValue uri) (.getExecutable uri) (.getExtract uri)))
+  (URI. (.getValue uri) (.getExecutable uri) (.getExtract uri) (.getCache uri)))
 
 (defrecord CommandInfoContainer [image options]
   Serializable
@@ -290,13 +445,11 @@
    (.getImage container)
    (.getOptionsList container)))
 
-(defrecord CommandInfo [container uris environment
-                        shell value arguments user]
+(defrecord CommandInfo [uris environment shell value arguments user]
   Serializable
   (data->pb [this]
     (-> (Protos$CommandInfo/newBuilder)
         (cond->
-            container          (.setContainer (->pb :ContainerInfo container))
             environment        (.setEnvironment (->pb :Environment environment))
             (not (nil? shell)) (.setShell (boolean shell))
             value              (.setValue (str value))
@@ -308,7 +461,6 @@
 (defmethod pb->data Protos$CommandInfo
   [^Protos$CommandInfo info]
   (CommandInfo.
-   (when-let [cnt (.getContainer info)] (pb->data cnt))
    (map pb->data (.getUrisList info))
    (when-let [env (.getEnvironment info)] (pb->data env))
    (.getShell info)
@@ -331,7 +483,8 @@
             container    (.setContainer (->pb :ContainerInfo container))
             name         (.setName (str name))
             source       (.setSource (str source))
-            data         (.setData data))
+            data         (.setData data)
+            discovery    (.setDiscovery discovery))
         (.addAllResources (mapv (partial ->pb :Resource) resources))
         (.build))))
 
@@ -351,7 +504,7 @@
 ;; MasterInfo
 ;; ==========
 
-(defrecord MasterInfo [id ip port pid hostname]
+(defrecord MasterInfo [id ip port pid hostname version address]
   Serializable
   (data->pb [this]
     (-> (Protos$MasterInfo/newBuilder)
@@ -360,7 +513,9 @@
         (.setPort (int port))
         (cond->
             pid      (.setPid (str pid))
-            hostname (.setHostname (str hostname)))
+            hostname (.setHostname (str hostname))
+            version  (.setVersion (str version))
+            address  (.setAddress (->pb :Address address)))
         (.build))))
 
 (defmethod pb->data Protos$MasterInfo
@@ -370,7 +525,9 @@
    (.getIp info)
    (.getPort info)
    (.getPid info)
-   (.getHostname info)))
+   (.getHostname info)
+   (.getVersion info)
+   (when-let [address (.getAddress info)] (pb->data address))))
 
 ;; SlaveInfo
 ;; =========
@@ -381,9 +538,9 @@
     (-> (Protos$SlaveInfo/newBuilder)
         (.setHostname (str hostname))
         (cond->
-            port       (.setPort (int port))
-            id         (.setId (->pb :SlaveID id))
-            checkpoint (.setCheckPoint (boolean checkpoint)))
+            port                    (.setPort (int port))
+            id                      (.setId (->pb :SlaveID id))
+            (not (nil? checkpoint)) (.setCheckPoint (boolean checkpoint)))
         (.addAllResources (mapv (partial ->pb :Resource) resources))
         (.addAllAttributes (mapv (partial ->pb :Attribute) attributes))
         (.build))))
@@ -878,6 +1035,75 @@
    (mapv pb->data (.getAttributesList offer))
    (mapv pb->data (.getExecutorIdsList offer))))
 
+;; Ports
+;; =====
+
+(defrecord Port [number name protocol visibility labels]
+  Serializable
+  (data->pb [this]
+    (-> (Protos$Port/newBuilder)
+        (.setNumber (int number))
+        (cond-> name       (.setName (str name))
+                protocol   (.setProtocol (str protocol))
+                visibility (.setVisibility (pb->data visibility))
+                labels     (.setLabels (->pb :Labels labels)))
+        (.build))))
+
+(defmethod pb->data Protos$Port
+  [^Protos$Port port]
+  (Port. (.getNumber port)
+         (.getName port)
+         (.getProtocol port)
+         (when-let [vis (.getVisibility port)] (pb->data vis))
+         (when-let [labels (.getLabels port)] (pb->data labels))))
+
+(defrecord Ports [ports]
+  Serializable
+  (data->pb [this]
+    (-> (Protos$Ports/newBuilder)
+        (.addAllPorts (mapv (partial ->pb :Port ports)))
+        (.build))))
+
+(defmethod pb->data Protos$Ports
+  [^Protos$Ports ports]
+  (Ports. (mapv pb->data (.getAllPorts ports))))
+
+;; DiscoveryInfo
+;; =============
+
+(defrecord DiscoveryInfo [visibility name environment location
+                          version ports labels]
+  Serializable
+  (data->pb [this]
+    (-> (Protos$DiscoveryInfo/newBuilder)
+        (.setVisibility visibility)
+        (cond-> name (.setName (str name))
+                environment (.setEnvionment (str environment))
+                location    (.setLocation (str location))
+                ports       (.setPorts (->pb :Ports ports))
+                version     (.setVersion (str version))
+                labels      (.setLabels (->pb :Labels labels))))))
+
+(defmethod pb->data Protos$DiscoveryInfo
+  [^Protos$DiscoveryInfo di]
+  (DiscoveryInfo. (pb->data (.getVisibility di))
+                  (.getName di)
+                  (.getEnvironment di)
+                  (.getLocation di)
+                  (.getVersion di)
+                  (when-let [ports (.getPorts di)] (pb->data ports))
+                  (when-let [labels (.getLabels di)] (pb->data labels))))
+
+(defmethod pb->data Protos$DiscoveryInfo$Visibility
+  [^Protos$DiscoveryInfo$Visibility vis]
+  (cond
+    (= Protos$DiscoveryInfo$Visibility/FRAMEWORK vis)
+    :discovery-visibility-framework
+    (= Protos$DiscoveryInfo$Visibility/CLUSTER vis)
+    :discovery-visibility-cluster
+    (= Protos$DiscoveryInfo$Visibility/EXTERNAL vis)
+    :discovery-visibility-external))
+
 ;; TaskInfo
 ;; ========
 
@@ -960,8 +1186,6 @@
     :reason-invalid-offers
     (= status Protos$TaskStatus$Reason/REASON_MASTER_DISCONNECTED)
     :reason-master-disconnected
-    (= status Protos$TaskStatus$Reason/REASON_MEMORY_LIMIT)
-    :reason-memory-limit
     (= status Protos$TaskStatus$Reason/REASON_RECONCILIATION)
     :reason-reconciliation
     (= status Protos$TaskStatus$Reason/REASON_SLAVE_DISCONNECTED)
@@ -1103,94 +1327,6 @@
   [^Protos$Credentials c]
   (Credentials. (mapv pb->data (.getCredentialsList c))))
 
-;; ACL
-;; ===
-
-(defmethod pb->data Protos$ACL$Entity$Type
-  [^Protos$ACL$Entity$Type type]
-  (cond
-    (= type Protos$ACL$Entity$Type/SOME) :entity-some
-    (= type Protos$ACL$Entity$Type/ANY)  :entity-any
-    (= type Protos$ACL$Entity$Type/NONE) :entity-none
-    :else type))
-
-(defrecord ACLEntity [type values]
-  Serializable
-  (data->pb [this]
-    (-> (Protos$ACL$Entity/newBuilder)
-        (cond-> type (.setType (data->pb type)))
-        (.addAllValues (mapv str values))
-        (.build))))
-
-(defmethod pb->data Protos$ACL$Entity
-  [^Protos$ACL$Entity entity]
-  (ACLEntity.
-   (pb->data (.getType entity))
-   (.getValuesList entity)))
-
-(defrecord ACLRegisterFramework [principals roles]
-  Serializable
-  (data->pb [this]
-    (-> (Protos$ACL$RegisterFramework/newBuilder)
-        (.setPrincipals (->pb :ACLEntity principals))
-        (.setRoles (->pb :ACLEntity roles))
-        (.build))))
-
-(defmethod pb->data Protos$ACL$RegisterFramework
-  [^Protos$ACL$RegisterFramework framework]
-  (ACLRegisterFramework.
-   (pb->data (.getPrincipals framework))
-   (pb->data (.getRoles framework))))
-
-(defrecord ACLRunTask [principals users]
-  Serializable
-  (data->pb [this]
-    (-> (Protos$ACL$RunTask/newBuilder)
-        (.setPrincipals (->pb :ACLEntity principals))
-        (.setUsers (->pb :ACLEntity users))
-        (.build))))
-
-(defmethod pb->data Protos$ACL$RunTask
-  [^Protos$ACL$RunTask run-task]
-  (ACLRunTask.
-   (pb->data (.getPrincipals run-task))
-   (pb->data (.getUsers run-task))))
-
-(defrecord ACLShutdownFramework [principals framework-principals]
-  Serializable
-  (data->pb [this]
-    (-> (Protos$ACL$ShutdownFramework/newBuilder)
-        (.setPrincipals (->pb :ACLEntity principals))
-        (.setFrameworkPrincipals (->pb :ACLEntity framework-principals))
-        (.build))))
-
-(defmethod pb->data Protos$ACL$ShutdownFramework
-  [^Protos$ACL$ShutdownFramework framework]
-  (ACLShutdownFramework.
-   (pb->data (.getPrincipals framework))
-   (pb->data (.getFrameworkPrincipals framework))))
-
-(defrecord ACLs [permissive register-frameworks
-                 run-tasks shutdown-frameworks]
-  Serializable
-  (data->pb [this]
-    (-> (Protos$ACLs/newBuilder)
-        (cond-> (not (nil? permissive)) (.setPermissive (boolean permissive)))
-        (.addAllRegisterFrameworks (mapv (partial ->pb :ACLRegisterFramework)
-                                         register-frameworks))
-        (.addAllShutdownFrameworks (mapv (partial ->pb :ACLShutdownFramework)
-                                         shutdown-frameworks))
-        (.addAllRunTasks (mapv (partial ->pb :ACLRunTask) run-tasks))
-        (.build))))
-
-(defmethod pb->data Protos$ACLs
-  [^Protos$ACLs acls]
-  (ACLs.
-   (.getPermissive acls)
-   (.getRegisterFrameworks acls)
-   (.getRunTasks acls)
-   (.getShutdownFrameworks acls)))
-
 ;; RateLimit
 ;; =========
 
@@ -1310,6 +1446,30 @@
         (.addAllVolumes (mapv (partial ->pb :Volume) volumes))
         (.build))))
 
+(defrecord Label [key value]
+  Serializable
+  (data->pb [this]
+    (-> (Protos$Label/newBuilder)
+        (.setKey (str key))
+        (cond-> value (.setValue (str value)))
+        (.build))))
+
+(defmethod pb->data Protos$Label
+  [^Protos$Label label]
+  (Label. (.getKey label) (.getValue label)))
+
+(defrecord Labels [labels]
+  Serializable
+  (data->pb [this]
+    (-> (Protos$Labels/newBuilder)
+        (.addAllLabels (mapv (partial ->pb :Label) labels))
+        (.build))))
+
+(defmethod pb->data Protos$Labels
+  [^Protos$Labels labels]
+  (Labels. (mapv pb->data (.getAllLabels labels))))
+
+
 ;; Safe for the common stuff in extend-protocol, this marks the end of
 ;; messages defined in mesos.proto
 
@@ -1359,9 +1519,6 @@
       :value-ranges             Protos$Value$Type/RANGES
       :value-set                Protos$Value$Type/SET
       :value-text               Protos$Value$Type/TEXT
-      :entity-some              Protos$ACL$Entity$Type/SOME
-      :entity-any               Protos$ACL$Entity$Type/ANY
-      :entity-none              Protos$ACL$Entity$Type/NONE
       :volume-rw                Protos$Volume$Mode/RW
       :volume-ro                Protos$Volume$Mode/RO
       :docker-network-host      Protos$ContainerInfo$DockerInfo$Network/HOST
@@ -1369,8 +1526,22 @@
       :docker-network-none      Protos$ContainerInfo$DockerInfo$Network/NONE
       :container-type-docker    Protos$ContainerInfo$Type/DOCKER
       :container-type-mesos     Protos$ContainerInfo$Type/MESOS
+      :machine-mode-up          Protos$MachineInfo$Mode/UP
+      :machine-mode-draining    Protos$MachineInfo$Mode/DRAINING
+      :machine-mode-down        Protos$MachineInfo$Mode/DOWN
 
       ;; These are too wide and mess up indenting!
+      :framework-capability-revocable-resource
+      Protos$FrameworkInfo$Capability$Type/REVOCABLE_RESOURCES
+
+      :discovery-visibility-framework
+      Protos$DiscoveryInfo$Visibility/FRAMEWORK
+      :discovery-visibility-cluster
+      Protos$DiscoveryInfo$Visibility/CLUSTER
+      :discovery-visibility-external
+      Protos$DiscoveryInfo$Visibility/EXTERNAL
+
+
       :reason-command-executor-failed
       Protos$TaskStatus$Reason/REASON_COMMAND_EXECUTOR_FAILED
       :reason-executor-terminated
@@ -1388,8 +1559,6 @@
       :reason-master-disconnected
       Protos$TaskStatus$Reason/REASON_MASTER_DISCONNECTED
       :reason-memory-limit
-      Protos$TaskStatus$Reason/REASON_MEMORY_LIMIT
-      :reason-reconciliation
       Protos$TaskStatus$Reason/REASON_RECONCILIATION
       :reason-slave-disconnected
       Protos$TaskStatus$Reason/REASON_SLAVE_DISCONNECTED
@@ -1452,11 +1621,6 @@
        (= :Parameters map-type)           (map->Parameter this)
        (= :Credential map-type)           (map->Credential this)
        (= :Credentials map-type)          (map->Credentials this)
-       (= :ACLEntity map-type)            (map->ACLEntity this)
-       (= :ACLRegisterFramework map-type) (map->ACLRegisterFramework this)
-       (= :ACLShutdownFramework map-type) (map->ACLShutdownFramework this)
-       (= :ACLRunTask map-type)           (map->ACLRunTask this)
-       (= :ACLs map-type)                 (map->ACLs this)
        (= :RateLimit map-type)            (map->RateLimit this)
        (= :RateLimits map-type)           (map->RateLimits this)
        (= :Volume map-type)               (map->Volume this)
