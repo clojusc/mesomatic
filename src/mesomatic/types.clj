@@ -344,10 +344,10 @@
             role             (.setRole (str role))
             hostname         (.setHostname (str hostname))
             principal        (.setPrincipal (str principal))
-            webui-url        (.setWebuiUrl (str webui-url)))
+            webui-url        (.setWebuiUrl (str webui-url))
+            labels           (.setLabels (->pb :Labels labels)))
         (.addAllCapabilities (mapv (partial ->pb :FrameworkCapability)
                                    capabilities))
-        (.addAllLabels (mapv (partial ->pb :Label) labels))
         (.build))))
 
 (defmethod pb->data Protos$FrameworkInfo
@@ -362,8 +362,8 @@
    (.getHostname info)
    (.getPrincipal info)
    (.getWebuiUrl info)
-   (mapv pb->data (.getAllCapabilities info))
-   (mapv pb->data (.getAllLabels info))))
+   (when-let [labels (.getLabels info)] (pb->data labels))
+   (mapv pb->data (.getAllCapabilities info))))
 
 ;; HealthCheck
 ;; ===========
