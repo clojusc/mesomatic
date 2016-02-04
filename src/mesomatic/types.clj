@@ -14,7 +14,6 @@
            org.apache.mesos.Protos$HealthCheck$HTTP
            org.apache.mesos.Protos$CommandInfo
            org.apache.mesos.Protos$CommandInfo$URI
-           org.apache.mesos.Protos$CommandInfo$ContainerInfo
            org.apache.mesos.Protos$ExecutorInfo
            org.apache.mesos.Protos$MasterInfo
            org.apache.mesos.Protos$SlaveInfo
@@ -430,20 +429,6 @@
 (defmethod pb->data Protos$CommandInfo$URI
   [^Protos$CommandInfo$URI uri]
   (URI. (.getValue uri) (.getExecutable uri) (.getExtract uri) (.getCache uri)))
-
-(defrecord CommandInfoContainer [image options]
-  Serializable
-  (data->pb [this]
-    (-> (Protos$CommandInfo$ContainerInfo/newBuilder)
-        (.setImage (str image))
-        (.addAllOptions (mapv str options))
-        (.build))))
-
-(defmethod pb->data Protos$CommandInfo$ContainerInfo
-  [^Protos$CommandInfo$ContainerInfo container]
-  (CommandInfoContainer.
-   (.getImage container)
-   (.getOptionsList container)))
 
 (defrecord CommandInfo [uris environment shell value arguments user]
   Serializable
