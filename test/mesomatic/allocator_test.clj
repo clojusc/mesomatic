@@ -40,8 +40,8 @@
                                         :port-mappings [{:container-port 80, :protocol nil}],
                                         :network :docker-network-bridge}},
                    :command {:shell false},
-                   :count 2,
-                   :maxcol 1}]
+                   :instances 2
+                   :colocation 1}]
 
     (testing "cannot satisfy workload"
       (is (= nil (allocate-naively (take 1 offers) [task-info])))
@@ -53,7 +53,7 @@
                     (group-by :offer-id)
                     keys
                     count)))
-      (is (= 1 (->> (allocate-naively offers [(assoc task-info :maxcol 2)])
+      (is (= 1 (->> (allocate-naively offers [(assoc task-info :colocation 2)])
                     (group-by :offer-id)
                     keys
                     count))))))
