@@ -166,7 +166,7 @@
      [ O1(1,5) ]
      [ T2:(O1,O2) T3(O1,O3) T1(O1) ]"
 
-  [acc {:keys [count] :or {count 1} :as task}]
+  [acc {:keys [instances] :or {instances 1} :as task}]
   (loop [[offer & offers :as untouched] (:offers acc)
          payloads                       []
          adjusted                       nil
@@ -178,13 +178,13 @@
       (reduced (assoc acc :failed? true))
 
       ;; We're done with this task.
-      (>= global count)
+      (>= global instances)
       (-> acc
           (assoc :offers (into (vec adjusted) untouched))
           (update :payloads into payloads))
 
       ;; Too many collocated tasks, skip to next offer.
-      (and (:maxcol task) (>= local (:maxcol task)))
+      (and (:colocation task) (>= local (:colocation task)))
       (recur offers payloads (conj adjusted offer) [global 0])
 
       ;; We have a match, record it.
