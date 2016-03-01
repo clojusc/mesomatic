@@ -1195,7 +1195,7 @@
   Serializable
   (data->pb [this]
     (-> (Protos$TaskStatus/newBuilder)
-        (.setTaskId (data->pb task-id))
+        (.setTaskId (->pb :TaskID task-id))
         (.setState (data->pb state))
         (cond->
             message     (.setMessage (str message))
