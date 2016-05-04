@@ -8,22 +8,22 @@ from clojure. It provides a simple and idiomatic facade around the Mesos JAVA AP
 facilities to help when writing mesos frameworks.
 
 Mesomatic versions match the API version they target, a trailing minor indicates
-the patch release number, for instance version `0.27.0-r0` will target mesos `0.27.0`.
+the patch release number, for instance version `0.28.0-r0` will target mesos `0.28.0`.
 
 ## Usage
 
 Add this to your leiningen profile.
 
 ```clojure
-:dependencies [[org.spootnik/mesomatic "0.27.0-r0"]]
+:dependencies [[org.spootnik/mesomatic "0.28.0-r0"]]
 ```
 
 If you want to use the [core.async](https://github.com/clojure/core.async) facade,
 you will need to pull it in as well:
 
 ```clojure
-:dependencies [[org.spootnik/mesomatic       "0.27.0-r0"]
-               [org.spootnik/mesomatic-async "0.27.0-r0"]]
+:dependencies [[org.spootnik/mesomatic       "0.28.0-r0"]
+               [org.spootnik/mesomatic-async "0.28.0-r0"]]
 ```
                
 ## Namespaces
