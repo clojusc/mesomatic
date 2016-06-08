@@ -1101,7 +1101,7 @@
           (.setTaskId (->pb :TaskID task-id))
           (.setSlaveId (->pb :SlaveID slave-id))
           (cond->
-              executor     (.setExecutor (->pb :ExecutorInfo container))
+              executor     (.setExecutor (->pb :ExecutorInfo executor))
               command      (.setCommand (->pb :CommandInfo command))
               container    (.setContainer (->pb :ContainerInfo container))
               data         (.setData data)
