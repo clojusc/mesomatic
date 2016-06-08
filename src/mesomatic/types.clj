@@ -462,7 +462,7 @@
   (data->pb [this]
     (-> (Protos$ExecutorInfo/newBuilder)
         (.setExecutorId (->pb :ExecutorID executor-id))
-        (.setCommandInfo (->pb :CommandInfo command))
+        (.setCommand (->pb :CommandInfo command))
         (cond->
             framework-id (.setFrameWorkId (->pb :FrameworkID framework-id))
             container    (.setContainer (->pb :ContainerInfo container))
