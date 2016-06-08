@@ -464,7 +464,7 @@
         (.setExecutorId (->pb :ExecutorID executor-id))
         (.setCommand (->pb :CommandInfo command))
         (cond->
-            framework-id (.setFrameWorkId (->pb :FrameworkID framework-id))
+            framework-id (.setFrameworkId (->pb :FrameworkID framework-id))
             container    (.setContainer (->pb :ContainerInfo container))
             name         (.setName (str name))
             source       (.setSource (str source))
