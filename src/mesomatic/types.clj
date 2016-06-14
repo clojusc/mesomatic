@@ -362,7 +362,7 @@
    (.getPrincipal info)
    (.getWebuiUrl info)
    (when-let [labels (.getLabels info)] (pb->data labels))
-   (mapv pb->data (.getAllCapabilities info))))
+   (mapv pb->data (.getCapabilitiesList info))))
 
 ;; HealthCheck
 ;; ===========
@@ -1051,7 +1051,7 @@
 
 (defmethod pb->data Protos$Ports
   [^Protos$Ports ports]
-  (Ports. (mapv pb->data (.getAllPorts ports))))
+  (Ports. (mapv pb->data (.getPortsList ports))))
 
 ;; DiscoveryInfo
 ;; =============
@@ -1452,7 +1452,7 @@
 
 (defmethod pb->data Protos$Labels
   [^Protos$Labels labels]
-  (Labels. (mapv pb->data (.getAllLabels labels))))
+  (Labels. (mapv pb->data (.getLabelsList labels))))
 
 
 ;; Safe for the common stuff in extend-protocol, this marks the end of
