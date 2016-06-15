@@ -1028,18 +1028,17 @@
 (defmethod pb->data Protos$Offer$Operation$Type
   [^Protos$Offer$Operation$Type op-type]
   (cond
-    (= op-type Protos$Offer$Operation$Type/LAUNCH)    :launch
-    (= op-type Protos$Offer$Operation$Type/RESERVE)   :reserve
-    (= op-type Protos$Offer$Operation$Type/UNRESERVE) :unreserve
-    (= op-type Protos$Offer$Operation$Type/CREATE)    :create
-    (= op-type Protos$Offer$Operation$Type/DESTROY)   :destroy
+    (= op-type Protos$Offer$Operation$Type/LAUNCH)    :operation-launch
+    (= op-type Protos$Offer$Operation$Type/RESERVE)   :operation-reserve
+    (= op-type Protos$Offer$Operation$Type/UNRESERVE) :operation-unreserve
+    (= op-type Protos$Offer$Operation$Type/CREATE)    :operation-create
+    (= op-type Protos$Offer$Operation$Type/DESTROY)   :operation-destroy
     :else op-type))
 
-(defrecord Operation [op-type]
+(defrecord Operation [type]
   Serializable
   (data->pb [this]
-    (-> (Protos$Offer$Operation/newBuilder)
-        (.setType op-type))))
+    (Protos$Offer$Operation/newBuilder type)))
 
 (defmethod pb->data Protos$Offer$Operation
   [^Protos$Offer$Operation op]
@@ -1517,6 +1516,11 @@
       :driver-running           Protos$Status/DRIVER_RUNNING
       :driver-aborted           Protos$Status/DRIVER_ABORTED
       :driver-stopped           Protos$Status/DRIVER_STOPPED
+      :operation-launch         Protos$Offer$Operation$Type/LAUNCH
+      :operation-reserve        Protos$Offer$Operation$Type/RESERVE
+      :operation-unreserve      Protos$Offer$Operation$Type/UNRESERVE
+      :operation-create         Protos$Offer$Operation$Type/CREATE
+      :operation-destroy        Protos$Offer$Operation$Type/DESTROY
       :task-staging             Protos$TaskState/TASK_STAGING
       :task-starting            Protos$TaskState/TASK_STARTING
       :task-running             Protos$TaskState/TASK_RUNNING
@@ -1622,6 +1626,7 @@
        (= :Resource map-type)     (map->Resource this)
        (= :Request map-type)      (map->Request this)
        (= :Offer map-type)                (map->Offer this)
+       (= :Operation map-type)            (map->Operation this)
        (= :TaskInfo map-type)             (map->TaskInfo this)
        (= :TaskStatus map-type)           (map->TaskStatus this)
        (= :Filters map-type)              (map->Filters this)
