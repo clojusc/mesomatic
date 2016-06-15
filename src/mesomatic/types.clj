@@ -31,6 +31,8 @@
            org.apache.mesos.Protos$PerfStatistics
            org.apache.mesos.Protos$Request
            org.apache.mesos.Protos$Offer
+           org.apache.mesos.Protos$Offer$Operation
+           org.apache.mesos.Protos$Offer$Operation$Type
            org.apache.mesos.Protos$TaskInfo
            org.apache.mesos.Protos$TaskState
            org.apache.mesos.Protos$TaskStatus
