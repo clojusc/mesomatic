@@ -1022,6 +1022,19 @@
    (mapv pb->data (.getAttributesList offer))
    (mapv pb->data (.getExecutorIdsList offer))))
 
+;; Operation
+;; =========
+
+(defmethod pb->data Protos$Offer$Operation$Type
+  [^Protos$Offer$Operation$Type op-type]
+  (cond
+    (= op-type Protos$Offer$Operation$Type/LAUNCH)    :launch
+    (= op-type Protos$Offer$Operation$Type/RESERVE)   :reserve
+    (= op-type Protos$Offer$Operation$Type/UNRESERVE) :unreserve
+    (= op-type Protos$Offer$Operation$Type/CREATE)    :create
+    (= op-type Protos$Offer$Operation$Type/DESTROY)   :destroy
+    :else op-type))
+
 ;; Ports
 ;; =====
 
