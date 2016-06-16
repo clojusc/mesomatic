@@ -33,6 +33,10 @@
            org.apache.mesos.Protos$Offer
            org.apache.mesos.Protos$Offer$Operation
            org.apache.mesos.Protos$Offer$Operation$Launch
+           org.apache.mesos.Protos$Offer$Operation$Reserve
+           org.apache.mesos.Protos$Offer$Operation$Unreserve
+           org.apache.mesos.Protos$Offer$Operation$Create
+           org.apache.mesos.Protos$Offer$Operation$Destroy
            org.apache.mesos.Protos$Offer$Operation$Type
            org.apache.mesos.Protos$TaskInfo
            org.apache.mesos.Protos$TaskState
