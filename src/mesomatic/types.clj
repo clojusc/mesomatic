@@ -32,6 +32,7 @@
            org.apache.mesos.Protos$Request
            org.apache.mesos.Protos$Offer
            org.apache.mesos.Protos$Offer$Operation
+           org.apache.mesos.Protos$Offer$Operation$Launch
            org.apache.mesos.Protos$Offer$Operation$Type
            org.apache.mesos.Protos$TaskInfo
            org.apache.mesos.Protos$TaskState
@@ -1026,23 +1027,90 @@
 ;; =========
 
 (defmethod pb->data Protos$Offer$Operation$Type
-  [^Protos$Offer$Operation$Type op-type]
+  [^Protos$Offer$Operation$Type type]
   (cond
-    (= op-type Protos$Offer$Operation$Type/LAUNCH)    :operation-launch
-    (= op-type Protos$Offer$Operation$Type/RESERVE)   :operation-reserve
-    (= op-type Protos$Offer$Operation$Type/UNRESERVE) :operation-unreserve
-    (= op-type Protos$Offer$Operation$Type/CREATE)    :operation-create
-    (= op-type Protos$Offer$Operation$Type/DESTROY)   :operation-destroy
-    :else op-type))
+    (= type Protos$Offer$Operation$Type/LAUNCH)    :operation-launch
+    (= type Protos$Offer$Operation$Type/RESERVE)   :operation-reserve
+    (= type Protos$Offer$Operation$Type/UNRESERVE) :operation-unreserve
+    (= type Protos$Offer$Operation$Type/CREATE)    :operation-create
+    (= type Protos$Offer$Operation$Type/DESTROY)   :operation-destroy
+    :else type))
 
-(defrecord Operation [type]
+(defrecord Operation [type tasks resources volumes]
   Serializable
   (data->pb [this]
-    (Protos$Offer$Operation/newBuilder type)))
+    (case (:type this)
+      :operation-launch
+        (let [launch (Protos$Offer$Operation$Launch/newBuilder)]
+          (.addAllTaskInfos
+            launch (mapv (partial ->pb :TaskInfo) tasks))
+          (-> (Protos$Offer$Operation/newBuilder)
+              (.setType (Protos$Offer$Operation$Type/LAUNCH))
+              (.setLaunch launch)
+              (.build)))
+      :operation-reserve
+        (let [reserve (Protos$Offer$Operation$Reserve/newBuilder)]
+          (.addAllResrouces
+            reserve (mapv (partial ->pb :Resource) resources))
+          (-> (Protos$Offer$Operation/newBuilder)
+              (.setType (Protos$Offer$Operation$Type/RESERVE))
+              (.setLaunch reserve)
+              (.build)))
+      :operation-unreserve
+        (let [unreserve (Protos$Offer$Operation$Unreserve/newBuilder)]
+          (.addAllResrouces
+            unreserve (mapv (partial ->pb :Resource) resources))
+          (-> (Protos$Offer$Operation/newBuilder)
+              (.setType (Protos$Offer$Operation$Type/UNRESERVE))
+              (.setLaunch unreserve)
+              (.build)))
+      :operation-create
+        (let [create (Protos$Offer$Operation$Create/newBuilder)]
+          (.addAllVolumes
+            create (mapv (partial ->pb :Volume) volumes))
+          (-> (Protos$Offer$Operation/newBuilder)
+              (.setType (Protos$Offer$Operation$Type/CREATE))
+              (.setLaunch create)
+              (.build)))
+      :operation-destroy
+        (let [destroy (Protos$Offer$Operation$Destroy/newBuilder)]
+          (.addAllVolumes
+            destroy (mapv (partial ->pb :Volume) volumes))
+          (-> (Protos$Offer$Operation/newBuilder)
+              (.setType (Protos$Offer$Operation$Type/DESTROY))
+              (.setLaunch destroy)
+              (.build))))))
 
 (defmethod pb->data Protos$Offer$Operation
   [^Protos$Offer$Operation op]
-  (Operation. (pb->data (.getType op))))
+  (let [type (pb->data (.getType op))]
+    (println (format "Got type '%s'" type))
+    (case type
+      :operation-launch
+        (Operation. type
+                    (map pb->data (.getTaskInfosList (.getLaunch op)))
+                    nil
+                    nil)
+      :operation-reserve
+        (Operation. type
+                    nil
+                    (map pb->data (.getResourcesList (.getReserve op)))
+                    nil)
+      :operation-unreserve
+        (Operation. type
+                    nil
+                    (map pb->data (.getResourcesList (.getUnreserve op)))
+                    nil)
+      :operation-create
+        (Operation. type
+                    (map pb->data (.getVolumesList (.getCreate op)))
+                    nil
+                    nil)
+      :operation-destroy
+        (Operation. type
+                    (map pb->data (.getVolumesList (.getDestroy op)))
+                    nil
+                    nil))))
 
 ;; Ports
 ;; =====
