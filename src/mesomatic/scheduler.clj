@@ -16,6 +16,8 @@
 
 (defprotocol SchedulerDriver
   (abort!                  [this])
+  (accept-offers           [this offer-ids operations]
+                           [this offer-ids operations filters])
   (decline-offer           [this offer-id] [this offer-id filters])
   (join!                   [this])
   (kill-task!              [this task-id])
@@ -32,6 +34,16 @@
   (reify SchedulerDriver
     (abort! [this]
       (pb->data (.abort d)))
+    (accept-offers [this offer-ids operations]
+      (pb->data (.acceptOffers d
+                               (mapv (partial ->pb :OfferID) offer-ids)
+                               (mapv (partial ->pb :Operation) operations)
+                               (->pb :Filters {:refuse-seconds 1}))))
+    (accept-offers [this offer-ids operations filters]
+      (pb->data (.acceptOffers d
+                               (mapv (partial ->pb :OfferID) offer-ids)
+                               (mapv (partial ->pb :Operation) operations)
+                               (mapv (partial ->pb :Filters) filters))))
     (decline-offer [this offer-id]
       (pb->data (.declineOffer d (->pb :OfferID offer-id))))
     (decline-offer [this offer-id filters]
