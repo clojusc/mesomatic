@@ -129,16 +129,30 @@
   [& body]
   `(wrap-scheduler (reify Scheduler ~@body)))
 
-(defn scheduler-driver
+(defn driver-builder
   ([scheduler framework master]
-   (scheduler-driver scheduler framework master nil))
+   (MesosSchedulerDriver. scheduler
+     (->pb :FrameworkInfo framework)
+     master))
   ([scheduler framework master credential]
-   (let [d (if credential
-             (MesosSchedulerDriver. scheduler
-                                    (->pb :FrameworkInfo framework)
-                                    master
-                                    (->pb :Credential credential))
-             (MesosSchedulerDriver. scheduler
-                                    (->pb :FrameworkInfo framework)
-                                    master))]
-     (wrap-driver d))))
+   (MesosSchedulerDriver. scheduler
+     (->pb :FrameworkInfo framework)
+     master
+     (->pb :Credential credential)))
+  ([scheduler framework master credential implicit-acknowledgements?]
+    (if (nil? credential)
+      (MesosSchedulerDriver. scheduler
+        (->pb :FrameworkInfo framework)
+        master
+        implicit-acknowledgements?)
+      (MesosSchedulerDriver. scheduler
+        (->pb :FrameworkInfo framework)
+        master
+        (->pb :Credential credential)
+        implicit-acknowledgements?))))
+
+(defn scheduler-driver
+  [& args]
+  (->> args
+       (apply driver-builder)
+       (wrap-driver)))
