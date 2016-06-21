@@ -14,7 +14,7 @@
     (reregistered
      [this driver master-info]
      (put! ch {:type        :reregistered
-               :driver      :driver
+               :driver      driver
                :master-info master-info}))
     (disconnected
      [this driver]
