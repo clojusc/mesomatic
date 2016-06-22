@@ -65,7 +65,7 @@
       (send-framework-message! [this data]
         (pb->data (.sendFrameworkMessage d data)))
       (send-status-update! [this status]
-        (pb->data (.sendStatusUpdate d (data->pb status))))
+        (pb->data (.sendStatusUpdate d status)))
       (start! [this]
         (pb->data (.start d)))
       (stop! [this]
