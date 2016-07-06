@@ -37,7 +37,7 @@
     (abort! [this]
       (pb->data (.abort d)))
     (acknowledge-status-update [this status]
-      (pb->data (.acknowledgeStatusUpdate this (->pb :TaskStatus status))))
+      (pb->data (.acknowledgeStatusUpdate d (->pb :TaskStatus status))))
     (accept-offers [this offer-ids operations]
       (pb->data (.acceptOffers d
                                (mapv (partial ->pb :OfferID) offer-ids)
