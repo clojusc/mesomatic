@@ -118,11 +118,11 @@
    when appropriate."
   [cpus mem ports]
   (fn [{:keys [name] :as record}]
-    (cond
-      (= name "mem")  (update record :scalar - mem)
-      (= name "cpus") (update record :scalar - cpus)
-      (= name "ports") (update record :ranges adjust-ports ports)
-      :else record)))
+    (case name
+      "mem"   (update record :scalar - mem)
+      "cpus"  (update record :scalar - cpus)
+      "ports" (update record :ranges adjust-ports ports)
+      record)))
 
 (defn adjust-offer
   "If an offer has been accepted, decrease its available resources."
