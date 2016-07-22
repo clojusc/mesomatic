@@ -97,14 +97,15 @@
 ;; will can be converted back with the extend-protocol
 ;; trick later on.
 
+(def ^:private Protos$Status-dispatch-map
+  {Protos$Status/DRIVER_RUNNING     :driver-running
+   Protos$Status/DRIVER_NOT_STARTED :driver-not-started
+   Protos$Status/DRIVER_ABORTED     :driver-aborted
+   Protos$Status/DRIVER_STOPPED     :driver-stopped})
+
 (defmethod pb->data Protos$Status
   [^Protos$Status status]
-  (case status
-    Protos$Status/DRIVER_RUNNING     :driver-running
-    Protos$Status/DRIVER_NOT_STARTED :driver-not-started
-    Protos$Status/DRIVER_ABORTED     :driver-aborted
-    Protos$Status/DRIVER_STOPPED     :driver-stopped
-    status))
+  (get Protos$Status-dispatch-map status status))
 
 ;; FrameworkID
 ;; ===========
@@ -293,12 +294,14 @@
 ;; MachineInfo
 ;; ===========
 
+(def ^:private Protos$MachineInfo$Mode-dispatch-map
+  {Protos$MachineInfo$Mode/UP       :machine-mode-up
+   Protos$MachineInfo$Mode/DRAINING :machine-mode-draining
+   Protos$MachineInfo$Mode/DOWN     :machine-mode-down})
+
 (defmethod pb->data Protos$MachineInfo$Mode
   [^Protos$MachineInfo$Mode mode]
-  (case mode
-    Protos$MachineInfo$Mode/UP       :machine-mode-up
-    Protos$MachineInfo$Mode/DRAINING :machine-mode-draining
-    Protos$MachineInfo$Mode/DOWN     :machine-mode-down))
+  (get Protos$MachineInfo$Mode-dispatch-map mode))
 
 (defrecord MachineInfo [id mode unavailability]
   Serializable
@@ -332,9 +335,8 @@
 
 (defmethod pb->data Protos$FrameworkInfo$Capability$Type
   [^Protos$FrameworkInfo$Capability$Type type]
-  (case
-    Protos$FrameworkInfo$Capability$Type/REVOCABLE_RESOURCES type
-    :framework-capability-revocable-resource))
+  (cond (= type Protos$FrameworkInfo$Capability$Type/REVOCABLE_RESOURCES)
+        :framework-capability-revocable-resource))
 
 (defrecord FrameworkInfo [user name id failover-timeout checkpoint role
                           hostname principal webui-url capabilities labels]
@@ -550,14 +552,15 @@
 ;; Value
 ;; =====
 
+(def ^:private Protos$Value$Type-dispatch-map
+  {Protos$Value$Type/SCALAR :value-scalar
+   Protos$Value$Type/RANGES :value-ranges
+   Protos$Value$Type/SET    :value-set
+   Protos$Value$Type/TEXT   :value-text})
+
 (defmethod pb->data Protos$Value$Type
   [^Protos$Value$Type type]
-  (case type
-    Protos$Value$Type/SCALAR :value-scalar
-    Protos$Value$Type/RANGES :value-ranges
-    Protos$Value$Type/SET    :value-set
-    Protos$Value$Type/TEXT   :value-text
-    type))
+  (get Protos$Value$Type-dispatch-map type type))
 
 (defmethod pb->data Protos$Value$Scalar
   [^Protos$Value$Scalar scalar]
@@ -1030,15 +1033,16 @@
 ;; Operation
 ;; =========
 
+(def ^:private Protos$Offer$Operation$Type-dispatch-map
+  {Protos$Offer$Operation$Type/LAUNCH    :operation-launch
+   Protos$Offer$Operation$Type/RESERVE   :operation-reserve
+   Protos$Offer$Operation$Type/UNRESERVE :operation-unreserve
+   Protos$Offer$Operation$Type/CREATE    :operation-create
+   Protos$Offer$Operation$Type/DESTROY   :operation-destroy})
+
 (defmethod pb->data Protos$Offer$Operation$Type
   [^Protos$Offer$Operation$Type type]
-  (case type
-    Protos$Offer$Operation$Type/LAUNCH    :operation-launch
-    Protos$Offer$Operation$Type/RESERVE   :operation-reserve
-    Protos$Offer$Operation$Type/UNRESERVE :operation-unreserve
-    Protos$Offer$Operation$Type/CREATE    :operation-create
-    Protos$Offer$Operation$Type/DESTROY   :operation-destroy
-    type))
+  (get Protos$Offer$Operation$Type-dispatch-map type type))
 
 (defrecord Operation [type tasks resources volumes]
   Serializable
@@ -1175,15 +1179,14 @@
                   (when-let [ports (.getPorts di)] (pb->data ports))
                   (when-let [labels (.getLabels di)] (pb->data labels))))
 
+(def ^:private Protos$DiscoveryInfo$Visibility-dispatch-map
+  {Protos$DiscoveryInfo$Visibility/FRAMEWORK :discovery-visibility-framework
+   Protos$DiscoveryInfo$Visibility/CLUSTER   :discovery-visibility-cluster
+   Protos$DiscoveryInfo$Visibility/EXTERNAL  :discovery-visibility-external})
+
 (defmethod pb->data Protos$DiscoveryInfo$Visibility
   [^Protos$DiscoveryInfo$Visibility vis]
-  (case vis
-    Protos$DiscoveryInfo$Visibility/FRAMEWORK
-    :discovery-visibility-framework
-    Protos$DiscoveryInfo$Visibility/CLUSTER
-    :discovery-visibility-cluster
-    Protos$DiscoveryInfo$Visibility/EXTERNAL
-    :discovery-visibility-external))
+  (get Protos$DiscoveryInfo$Visibility-dispatch-map vis))
 
 ;; TaskInfo
 ;; ========
@@ -1223,66 +1226,69 @@
 ;; TaskState
 ;; =========
 
+(def ^:private Protos$TaskState-dispatch-map
+  {Protos$TaskState/TASK_STAGING  :task-staging
+   Protos$TaskState/TASK_STARTING :task-starting
+   Protos$TaskState/TASK_RUNNING  :task-running
+   Protos$TaskState/TASK_FINISHED :task-finished
+   Protos$TaskState/TASK_FAILED   :task-failed
+   Protos$TaskState/TASK_KILLED   :task-killed
+   Protos$TaskState/TASK_LOST     :task-lost
+   Protos$TaskState/TASK_ERROR    :task-error})
+
 (defmethod pb->data Protos$TaskState
   [^Protos$TaskState status]
-  (case status
-    Protos$TaskState/TASK_STAGING  :task-staging
-    Protos$TaskState/TASK_STARTING :task-starting
-    Protos$TaskState/TASK_RUNNING  :task-running
-    Protos$TaskState/TASK_FINISHED :task-finished
-    Protos$TaskState/TASK_FAILED   :task-failed
-    Protos$TaskState/TASK_KILLED   :task-killed
-    Protos$TaskState/TASK_LOST     :task-lost
-    Protos$TaskState/TASK_ERROR    :task-error
-    status))
+  (get Protos$TaskState-dispatch-map status status))
 
 ;; TaskStatus
 ;; ==========
 
+(def ^:private Protos$TaskStatus$Source-dispatch-map
+  {Protos$TaskStatus$Source/SOURCE_MASTER   :source-master
+   Protos$TaskStatus$Source/SOURCE_SLAVE    :source-slave
+   Protos$TaskStatus$Source/SOURCE_EXECUTOR :source-executor})
+
 (defmethod pb->data Protos$TaskStatus$Source
   [^Protos$TaskStatus$Source status]
-  (case status
-    Protos$TaskStatus$Source/SOURCE_MASTER   :source-master
-    Protos$TaskStatus$Source/SOURCE_SLAVE    :source-slave
-    Protos$TaskStatus$Source/SOURCE_EXECUTOR :source-executor
-    status))
+  (get Protos$TaskStatus$Source-dispatch-map status status))
+
+(def ^:private Protos$TaskStatus$Reason-dispatch-map
+  {Protos$TaskStatus$Reason/REASON_COMMAND_EXECUTOR_FAILED
+   :reason-command-executor-failed
+   Protos$TaskStatus$Reason/REASON_EXECUTOR_TERMINATED
+   :reason-executor-terminated
+   Protos$TaskStatus$Reason/REASON_EXECUTOR_UNREGISTERED
+   :reason-executor-unregistered
+   Protos$TaskStatus$Reason/REASON_FRAMEWORK_REMOVED
+   :reason-framework-removed
+   Protos$TaskStatus$Reason/REASON_GC_ERROR
+   :reason-gc-error
+   Protos$TaskStatus$Reason/REASON_INVALID_FRAMEWORKID
+   :reason-invalid-frameworkid
+   Protos$TaskStatus$Reason/REASON_INVALID_OFFERS
+   :reason-invalid-offers
+   Protos$TaskStatus$Reason/REASON_MASTER_DISCONNECTED
+   :reason-master-disconnected
+   Protos$TaskStatus$Reason/REASON_RECONCILIATION
+   :reason-reconciliation
+   Protos$TaskStatus$Reason/REASON_SLAVE_DISCONNECTED
+   :reason-slave-disconnected
+   Protos$TaskStatus$Reason/REASON_SLAVE_REMOVED
+   :reason-slave-removed
+   Protos$TaskStatus$Reason/REASON_SLAVE_RESTARTED
+   :reason-slave-restarted
+   Protos$TaskStatus$Reason/REASON_SLAVE_UNKNOWN
+   :reason-slave-unknown
+   Protos$TaskStatus$Reason/REASON_TASK_INVALID
+   :reason-task-invalid
+   Protos$TaskStatus$Reason/REASON_TASK_UNAUTHORIZED
+   :reason-task-unauthorized
+   Protos$TaskStatus$Reason/REASON_TASK_UNKNOWN
+   :reason-task-unknown})
 
 (defmethod pb->data Protos$TaskStatus$Reason
   [^Protos$TaskStatus$Reason status]
-  (case status
-    Protos$TaskStatus$Reason/REASON_COMMAND_EXECUTOR_FAILED
-    :reason-command-executor-failed
-    Protos$TaskStatus$Reason/REASON_EXECUTOR_TERMINATED
-    :reason-executor-terminated
-    Protos$TaskStatus$Reason/REASON_EXECUTOR_UNREGISTERED
-    :reason-executor-unregistered
-    Protos$TaskStatus$Reason/REASON_FRAMEWORK_REMOVED
-    :reason-framework-removed
-    Protos$TaskStatus$Reason/REASON_GC_ERROR
-    :reason-gc-error
-    Protos$TaskStatus$Reason/REASON_INVALID_FRAMEWORKID
-    :reason-invalid-frameworkid
-    Protos$TaskStatus$Reason/REASON_INVALID_OFFERS
-    :reason-invalid-offers
-    Protos$TaskStatus$Reason/REASON_MASTER_DISCONNECTED
-    :reason-master-disconnected
-    Protos$TaskStatus$Reason/REASON_RECONCILIATION
-    :reason-reconciliation
-    Protos$TaskStatus$Reason/REASON_SLAVE_DISCONNECTED
-    :reason-slave-disconnected
-    Protos$TaskStatus$Reason/REASON_SLAVE_REMOVED
-    :reason-slave-removed
-    Protos$TaskStatus$Reason/REASON_SLAVE_RESTARTED
-    :reason-slave-restarted
-    Protos$TaskStatus$Reason/REASON_SLAVE_UNKNOWN
-    :reason-slave-unknown
-    Protos$TaskStatus$Reason/REASON_TASK_INVALID
-    :reason-task-invalid
-    Protos$TaskStatus$Reason/REASON_TASK_UNAUTHORIZED
-    :reason-task-unauthorized
-    Protos$TaskStatus$Reason/REASON_TASK_UNKNOWN
-    :reason-task-unknown
-    status))
+  (get Protos$TaskStatus$Reason-dispatch-map status status))
 
 (defrecord TaskStatus [task-id state message source reason
                        data slave-id executor-id timestamp
@@ -1450,12 +1456,13 @@
 ;; Volume
 ;; ======
 
+(def ^:private Protos$Volume$Mode-dispatch-map
+  {Protos$Volume$Mode/RW :volume-rw
+   Protos$Volume$Mode/RO :volume-ro})
+
 (defmethod pb->data Protos$Volume$Mode
   [^Protos$Volume$Mode mode]
-  (case mode
-    Protos$Volume$Mode/RW :volume-rw
-    Protos$Volume$Mode/RO :volume-ro
-    mode))
+  (get Protos$Volume$Mode-dispatch-map mode mode))
 
 (defrecord Volume [container-path host-path mode]
   Serializable
@@ -1468,12 +1475,13 @@
 ;; ContainerInfo
 ;; =============
 
+(def ^:private Protos$ContainerInfo$Type-dispatch-map
+  {Protos$ContainerInfo$Type/DOCKER :container-type-docker
+   Protos$ContainerInfo$Type/MESOS  :conatiner-type-mesos})
+
 (defmethod pb->data Protos$ContainerInfo$Type
   [^Protos$ContainerInfo$Type type]
-  (cond type
-    Protos$ContainerInfo$Type/DOCKER :container-type-docker
-    Protos$ContainerInfo$Type/MESOS  :conatiner-type-mesos
-    type))
+  (get Protos$ContainerInfo$Type-dispatch-map type type))
 
 (defrecord PortMapping [host-port container-port protocol]
     Serializable
@@ -1491,16 +1499,17 @@
    (.getContainerPort pm)
    (.getProtocol pm)))
 
+(def ^:private Protos$ContainerInfo$DockerInfo$Network-dispatch-map
+  {Protos$ContainerInfo$DockerInfo$Network/HOST
+   :docker-network-host
+   Protos$ContainerInfo$DockerInfo$Network/BRIDGE
+   :docker-network-bridge
+   Protos$ContainerInfo$DockerInfo$Network/NONE
+   :docker-network-none})
+
 (defmethod pb->data Protos$ContainerInfo$DockerInfo$Network
   [^Protos$ContainerInfo$DockerInfo$Network network]
-  (case network
-    Protos$ContainerInfo$DockerInfo$Network/HOST
-    :docker-network-host
-    Protos$ContainerInfo$DockerInfo$Network/BRIDGE
-    :docker-network-bridge
-    Protos$ContainerInfo$DockerInfo$Network/NONE
-    :docker-network-none
-    network))
+  (get Protos$ContainerInfo$DockerInfo$Network-dispatch-map network network))
 
 (defrecord DockerInfo [image network port-mappings
                        privileged parameters]
