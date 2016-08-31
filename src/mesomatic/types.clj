@@ -1189,7 +1189,7 @@
 ;; ========
 
 (defrecord TaskInfo [name task-id slave-id resources executor command
-                     container data health-check count maxcol]
+                     container data health-check labels discovery]
     Serializable
     (data->pb [this]
       (-> (Protos$TaskInfo/newBuilder)
@@ -1201,7 +1201,9 @@
               command      (.setCommand (->pb :CommandInfo command))
               container    (.setContainer (->pb :ContainerInfo container))
               data         (.setData data)
-              health-check (.setHealthCheck (->pb :HealthCheck health-check)))
+              health-check (.setHealthCheck (->pb :HealthCheck health-check))
+              labels       (.setLabels (->pb :Labels labels))
+              discovery    (.setDiscovery (-> :DiscoveryInfo discovery)))
           (.addAllResources (mapv (partial ->pb :Resource) resources))
           (.build))))
 
@@ -1696,6 +1698,8 @@
        (= :Value map-type)        (map->Value this)
        (= :Attribute map-type)    (map->Attribute this)
        (= :Resource map-type)     (map->Resource this)
+       (= :Labels map-type)       (map->Labels this)
+       (= :Label map-type)        (map->Label this)
        (= :Request map-type)      (map->Request this)
        (= :Offer map-type)                (map->Offer this)
        (= :Operation map-type)            (map->Operation this)
