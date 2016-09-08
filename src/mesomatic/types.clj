@@ -1255,6 +1255,22 @@
   (cond
     (= status Protos$TaskStatus$Reason/REASON_COMMAND_EXECUTOR_FAILED)
     :reason-command-executor-failed
+    (= status Protos$TaskStatus$Reason/REASON_CONTAINER_LAUNCH_FAILED)
+    :reason-container-launch-failed
+    (= status Protos$TaskStatus$Reason/REASON_CONTAINER_LIMITATION)
+    :reason-container-limitation
+    (= status Protos$TaskStatus$Reason/REASON_CONTAINER_LIMITATION_DISK)
+    :reason-container-limitation-disk
+    (= status Protos$TaskStatus$Reason/REASON_CONTAINER_LIMITATION_MEMORY)
+    :reason-container-limitation-memory
+    (= status Protos$TaskStatus$Reason/REASON_CONTAINER_PREEMPTED)
+    :reason-container-preempted
+    (= status Protos$TaskStatus$Reason/REASON_CONTAINER_UPDATE_FAILED)
+    :reason-container-update-failed
+    (= status Protos$TaskStatus$Reason/REASON_EXECUTOR_REGISTRATION_TIMEOUT)
+    :reason-executor-registration-timeout
+    (= status Protos$TaskStatus$Reason/REASON_EXECUTOR_REREGISTRATION_TIMEOUT)
+    :reason-executor-reregistration-timeout
     (= status Protos$TaskStatus$Reason/REASON_EXECUTOR_TERMINATED)
     :reason-executor-terminated
     (= status Protos$TaskStatus$Reason/REASON_EXECUTOR_UNREGISTERED)
@@ -1271,6 +1287,8 @@
     :reason-master-disconnected
     (= status Protos$TaskStatus$Reason/REASON_RECONCILIATION)
     :reason-reconciliation
+    (= status Protos$TaskStatus$Reason/REASON_RESOURCES_UNKNOWN)
+    :reason-resources-unknown
     (= status Protos$TaskStatus$Reason/REASON_SLAVE_DISCONNECTED)
     :reason-slave-disconnected
     (= status Protos$TaskStatus$Reason/REASON_SLAVE_REMOVED)
@@ -1632,6 +1650,22 @@
 
       :reason-command-executor-failed
       Protos$TaskStatus$Reason/REASON_COMMAND_EXECUTOR_FAILED
+      :reason-container-launch-failed
+      Protos$TaskStatus$Reason/REASON_CONTAINER_LAUNCH_FAILED
+      :reason-container-limitation
+      Protos$TaskStatus$Reason/REASON_CONTAINER_LIMITATION
+      :reason-container-limitation-disk
+      Protos$TaskStatus$Reason/REASON_CONTAINER_LIMITATION_DISK
+      :reason-container-limitation-memory
+      Protos$TaskStatus$Reason/REASON_CONTAINER_LIMITATION_MEMORY
+      :reason-container-preempted
+      Protos$TaskStatus$Reason/REASON_CONTAINER_PREEMPTED
+      :reason-container-update-failed
+      Protos$TaskStatus$Reason/REASON_CONTAINER_UPDATE_FAILED
+      :reason-executor-registration-timeout
+      Protos$TaskStatus$Reason/REASON_EXECUTOR_REGISTRATION_TIMEOUT
+      :reason-executor-reregistration-timeout
+      Protos$TaskStatus$Reason/REASON_EXECUTOR_REREGISTRATION_TIMEOUT
       :reason-executor-terminated
       Protos$TaskStatus$Reason/REASON_EXECUTOR_TERMINATED
       :reason-executor-unregistered
@@ -1646,8 +1680,10 @@
       Protos$TaskStatus$Reason/REASON_INVALID_OFFERS
       :reason-master-disconnected
       Protos$TaskStatus$Reason/REASON_MASTER_DISCONNECTED
-      :reason-memory-limit
+      :reason-reconciliation
       Protos$TaskStatus$Reason/REASON_RECONCILIATION
+      :reason-resources-unknown
+      Protos$TaskStatus$Reason/REASON_RESOURCES_UNKNOWN
       :reason-slave-disconnected
       Protos$TaskStatus$Reason/REASON_SLAVE_DISCONNECTED
       :reason-slave-removed
