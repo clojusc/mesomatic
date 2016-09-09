@@ -333,6 +333,10 @@
 (defmethod pb->data Protos$FrameworkInfo$Capability$Type
   [^Protos$FrameworkInfo$Capability$Type type]
   (cond
+    (= Protos$FrameworkInfo$Capability$Type/TASK_KILLING_STATE type)
+    :framework-capability-task-killing-state
+    (= Protos$FrameworkInfo$Capability$Type/GPU_RESOURCES type)
+    :framework-capability-gpu-resources
     (= Protos$FrameworkInfo$Capability$Type/REVOCABLE_RESOURCES type)
     :framework-capability-revocable-resource))
 
@@ -1621,6 +1625,10 @@
       ;; These are too wide and mess up indenting!
       :framework-capability-revocable-resource
       Protos$FrameworkInfo$Capability$Type/REVOCABLE_RESOURCES
+      :framework-capability-task-killing-state
+      Protos$FrameworkInfo$Capability$Type/TASK_KILLING_STATE
+      :framework-capability-gpu-resources
+      Protos$FrameworkInfo$Capability$Type/GPU_RESOURCES
 
       :discovery-visibility-framework
       Protos$DiscoveryInfo$Visibility/FRAMEWORK
