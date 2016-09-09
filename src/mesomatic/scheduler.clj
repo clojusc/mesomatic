@@ -15,23 +15,40 @@
   (error             [this driver message]))
 
 (defprotocol SchedulerDriver
-  (abort!                  [this])
-  (decline-offer           [this offer-id] [this offer-id filters])
-  (join!                   [this])
-  (kill-task!              [this task-id])
-  (launch-tasks!           [this offer-id tasks] [this offer-id tasks filters])
-  (reconcile-tasks         [this statuses])
-  (request-resources       [this requests])
-  (revive-offers           [this])
-  (run-driver!             [this])
-  (send-framework-message! [this executor-id slave-id data])
-  (start!                  [this])
-  (stop!                   [this] [this failover?]))
+  (abort!                    [this])
+  (acknowledge-status-update [this status])
+  (accept-offers             [this offer-ids operations]
+                             [this offer-ids operations filters])
+  (decline-offer             [this offer-id] [this offer-id filters])
+  (join!                     [this])
+  (kill-task!                [this task-id])
+  (launch-tasks!             [this offer-id tasks] [this offer-id tasks filters])
+  (reconcile-tasks           [this statuses])
+  (request-resources         [this requests])
+  (revive-offers             [this])
+  (run-driver!               [this])
+  (send-framework-message!   [this executor-id slave-id data])
+  (start!                    [this])
+  (stop!                     [this] [this failover?])
+  (suppress-offers           [this]))
 
 (defn wrap-driver [d]
   (reify SchedulerDriver
     (abort! [this]
       (pb->data (.abort d)))
+    (acknowledge-status-update [this status]
+      (pb->data (.acknowledgeStatusUpdate d (->pb :TaskStatus status))))
+    (accept-offers [this offer-ids operations]
+      (pb->data (.acceptOffers d
+                               (mapv (partial ->pb :OfferID) offer-ids)
+                               (mapv (partial ->pb :Operation) operations)
+                               (->pb :Filters {:refuse-seconds 1}))))
+    (accept-offers [this offer-ids operations filters]
+      (pb->data (.acceptOffers d
+                               (mapv (partial ->pb :OfferID) offer-ids)
+                               (mapv (partial ->pb :Operation) operations)
+                               (mapv (partial ->pb :Filters) filters))))
+
     (decline-offer [this offer-id]
       (pb->data (.declineOffer d (->pb :OfferID offer-id))))
     (decline-offer [this offer-id filters]
@@ -75,7 +92,9 @@
     (stop! [this]
       (pb->data (.stop d)))
     (stop! [this failover?]
-      (pb->data (.stop this (boolean failover?))))))
+      (pb->data (.stop this (boolean failover?))))
+    (suppress-offers [this]
+      (pb->data (.suppressOffers d)))))
 
 (defn wrap-scheduler
   [implementation]
@@ -117,16 +136,30 @@
   [& body]
   `(wrap-scheduler (reify Scheduler ~@body)))
 
-(defn scheduler-driver
+(defn driver-builder
   ([scheduler framework master]
-   (scheduler-driver scheduler framework master nil))
+   (MesosSchedulerDriver. scheduler
+     (->pb :FrameworkInfo framework)
+     master))
   ([scheduler framework master credential]
-   (let [d (if credential
-             (MesosSchedulerDriver. scheduler
-                                    (->pb :FrameworkInfo framework)
-                                    master
-                                    (->pb :Credential credential))
-             (MesosSchedulerDriver. scheduler
-                                    (->pb :FrameworkInfo framework)
-                                    master))]
-     (wrap-driver d))))
+   (MesosSchedulerDriver. scheduler
+     (->pb :FrameworkInfo framework)
+     master
+     (->pb :Credential credential)))
+  ([scheduler framework master credential implicit-acknowledgements?]
+    (if (nil? credential)
+      (MesosSchedulerDriver. scheduler
+        (->pb :FrameworkInfo framework)
+        master
+        implicit-acknowledgements?)
+      (MesosSchedulerDriver. scheduler
+        (->pb :FrameworkInfo framework)
+        master
+        (->pb :Credential credential)
+        implicit-acknowledgements?))))
+
+(defn scheduler-driver
+  [& args]
+  (->> args
+       (apply driver-builder)
+       (wrap-driver)))

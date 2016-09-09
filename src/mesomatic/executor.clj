@@ -32,19 +32,19 @@
     (frameworkMessage [this driver data]
       (framework-message impl driver data))
     (killTask [this driver task-id]
-      (kill-task impl driver (data->pb task-id)))
+      (kill-task impl driver (pb->data task-id)))
     (launchTask [this driver task]
-      (launch-task impl driver (data->pb task)))
+      (launch-task impl driver (pb->data task)))
     (registered [this driver executor-info framework-info slave-info]
       (registered impl
                   driver
-                  (data->pb executor-info)
-                  (data->pb framework-info)
-                  (data->pb slave-info)))
+                  (pb->data executor-info)
+                  (pb->data framework-info)
+                  (pb->data slave-info)))
     (reregistered [this driver slave-info]
       (reregistered impl
                     driver
-                    (data->pb slave-info)))
+                    (pb->data slave-info)))
     (shutdown [this driver]
       (shutdown impl driver))))
 
@@ -65,7 +65,7 @@
       (send-framework-message! [this data]
         (pb->data (.sendFrameworkMessage d data)))
       (send-status-update! [this status]
-        (pb->data (.sendStatusUpdate d (data->pb status))))
+        (pb->data (.sendStatusUpdate d status)))
       (start! [this]
         (pb->data (.start d)))
       (stop! [this]

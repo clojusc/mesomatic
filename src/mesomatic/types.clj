@@ -334,8 +334,12 @@
 (defmethod pb->data Protos$FrameworkInfo$Capability$Type
   [^Protos$FrameworkInfo$Capability$Type type]
   (case-enum type
+    Protos$FrameworkInfo$Capability$Type/TASK_KILLING_STATE
+    :framework-capability-task-killing-state
+    Protos$FrameworkInfo$Capability$Type/GPU_RESOURCES
+    :framework-capability-gpu-resources
     Protos$FrameworkInfo$Capability$Type/REVOCABLE_RESOURCES
-    :framework-capability-revocable-resource))
+    :framework-capability-revocable-resource)
 
 (defrecord FrameworkInfo [user name id failover-timeout checkpoint role
                           hostname principal webui-url capabilities labels]
@@ -544,7 +548,7 @@
    (.getHostname info)
    (.getPort info)
    (mapv pb->data (.getResourcesList info))
-   (mapv pb->data (.getAttributes info))
+   (mapv pb->data (.getAttributesList info))
    (when-let [id (.getId info)] (pb->data id))
    (.getCheckpoint info)))
 
@@ -1089,7 +1093,6 @@
 (defmethod pb->data Protos$Offer$Operation
   [^Protos$Offer$Operation op]
   (let [type (pb->data (.getType op))]
-    (println (format "Got type '%s'" type))
     (case type
       :operation-launch
         (Operation. type
@@ -1190,7 +1193,7 @@
 ;; ========
 
 (defrecord TaskInfo [name task-id slave-id resources executor command
-                     container data health-check count maxcol]
+                     container data health-check labels discovery]
     Serializable
     (data->pb [this]
       (-> (Protos$TaskInfo/newBuilder)
@@ -1202,7 +1205,9 @@
               command      (.setCommand (->pb :CommandInfo command))
               container    (.setContainer (->pb :ContainerInfo container))
               data         (.setData data)
-              health-check (.setHealthCheck (->pb :HealthCheck health-check)))
+              health-check (.setHealthCheck (->pb :HealthCheck health-check))
+              labels       (.setLabels (->pb :Labels labels))
+              discovery    (.setDiscovery (-> :DiscoveryInfo discovery)))
           (.addAllResources (mapv (partial ->pb :Resource) resources))
           (.build))))
 
@@ -1253,6 +1258,22 @@
   (case-enum status
     Protos$TaskStatus$Reason/REASON_COMMAND_EXECUTOR_FAILED
     :reason-command-executor-failed
+    Protos$TaskStatus$Reason/REASON_CONTAINER_LAUNCH_FAILED
+    :reason-container-launch-failed
+    Protos$TaskStatus$Reason/REASON_CONTAINER_LIMITATION
+    :reason-container-limitation
+    Protos$TaskStatus$Reason/REASON_CONTAINER_LIMITATION_DISK
+    :reason-container-limitation-disk
+    Protos$TaskStatus$Reason/REASON_CONTAINER_LIMITATION_MEMORY
+    :reason-container-limitation-memory
+    Protos$TaskStatus$Reason/REASON_CONTAINER_PREEMPTED
+    :reason-container-preempted
+    Protos$TaskStatus$Reason/REASON_CONTAINER_UPDATE_FAILED
+    :reason-container-update-failed
+    Protos$TaskStatus$Reason/REASON_EXECUTOR_REGISTRATION_TIMEOUT
+    :reason-executor-registration-timeout
+    Protos$TaskStatus$Reason/REASON_EXECUTOR_REREGISTRATION_TIMEOUT
+    :reason-executor-reregistration-timeout
     Protos$TaskStatus$Reason/REASON_EXECUTOR_TERMINATED
     :reason-executor-terminated
     Protos$TaskStatus$Reason/REASON_EXECUTOR_UNREGISTERED
@@ -1269,6 +1290,8 @@
     :reason-master-disconnected
     Protos$TaskStatus$Reason/REASON_RECONCILIATION
     :reason-reconciliation
+    Protos$TaskStatus$Reason/REASON_RESOURCES_UNKNOWN
+    :reason-resources-unknown
     Protos$TaskStatus$Reason/REASON_SLAVE_DISCONNECTED
     :reason-slave-disconnected
     Protos$TaskStatus$Reason/REASON_SLAVE_REMOVED
@@ -1615,10 +1638,17 @@
       :machine-mode-up          Protos$MachineInfo$Mode/UP
       :machine-mode-draining    Protos$MachineInfo$Mode/DRAINING
       :machine-mode-down        Protos$MachineInfo$Mode/DOWN
+      :source-master            Protos$TaskStatus$Source/SOURCE_MASTER
+      :source-slave             Protos$TaskStatus$Source/SOURCE_SLAVE
+      :source-executor          Protos$TaskStatus$Source/SOURCE_EXECUTOR
 
       ;; These are too wide and mess up indenting!
       :framework-capability-revocable-resource
       Protos$FrameworkInfo$Capability$Type/REVOCABLE_RESOURCES
+      :framework-capability-task-killing-state
+      Protos$FrameworkInfo$Capability$Type/TASK_KILLING_STATE
+      :framework-capability-gpu-resources
+      Protos$FrameworkInfo$Capability$Type/GPU_RESOURCES
 
       :discovery-visibility-framework
       Protos$DiscoveryInfo$Visibility/FRAMEWORK
@@ -1630,6 +1660,22 @@
 
       :reason-command-executor-failed
       Protos$TaskStatus$Reason/REASON_COMMAND_EXECUTOR_FAILED
+      :reason-container-launch-failed
+      Protos$TaskStatus$Reason/REASON_CONTAINER_LAUNCH_FAILED
+      :reason-container-limitation
+      Protos$TaskStatus$Reason/REASON_CONTAINER_LIMITATION
+      :reason-container-limitation-disk
+      Protos$TaskStatus$Reason/REASON_CONTAINER_LIMITATION_DISK
+      :reason-container-limitation-memory
+      Protos$TaskStatus$Reason/REASON_CONTAINER_LIMITATION_MEMORY
+      :reason-container-preempted
+      Protos$TaskStatus$Reason/REASON_CONTAINER_PREEMPTED
+      :reason-container-update-failed
+      Protos$TaskStatus$Reason/REASON_CONTAINER_UPDATE_FAILED
+      :reason-executor-registration-timeout
+      Protos$TaskStatus$Reason/REASON_EXECUTOR_REGISTRATION_TIMEOUT
+      :reason-executor-reregistration-timeout
+      Protos$TaskStatus$Reason/REASON_EXECUTOR_REREGISTRATION_TIMEOUT
       :reason-executor-terminated
       Protos$TaskStatus$Reason/REASON_EXECUTOR_TERMINATED
       :reason-executor-unregistered
@@ -1644,8 +1690,10 @@
       Protos$TaskStatus$Reason/REASON_INVALID_OFFERS
       :reason-master-disconnected
       Protos$TaskStatus$Reason/REASON_MASTER_DISCONNECTED
-      :reason-memory-limit
+      :reason-reconciliation
       Protos$TaskStatus$Reason/REASON_RECONCILIATION
+      :reason-resources-unknown
+      Protos$TaskStatus$Reason/REASON_RESOURCES_UNKNOWN
       :reason-slave-disconnected
       Protos$TaskStatus$Reason/REASON_SLAVE_DISCONNECTED
       :reason-slave-removed
@@ -1672,7 +1720,6 @@
 
 (defn ->pb
   [map-type this]
-
   (data->pb
    (if (record? this)
      this
@@ -1696,6 +1743,8 @@
                :Value               map->Value
                :Attribute           map->Attribute
                :Resource            map->Resource
+               :Labels              map->Labels
+               :Label               map->Label
                :Request             map->Request
                :Offer               map->Offer
                :Operation           map->Operation
