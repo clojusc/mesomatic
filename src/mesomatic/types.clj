@@ -1,5 +1,6 @@
 (ns mesomatic.types
   "Utility functions to convert to and from mesos types."
+  (:require [mesomatic.utils :refer [case-enum]])
   (:import org.apache.mesos.Protos$Status
            org.apache.mesos.Protos$FrameworkID
            org.apache.mesos.Protos$OfferID
@@ -99,12 +100,12 @@
 
 (defmethod pb->data Protos$Status
   [^Protos$Status status]
-  (cond
-    (= status Protos$Status/DRIVER_RUNNING)     :driver-running
-    (= status Protos$Status/DRIVER_NOT_STARTED) :driver-not-started
-    (= status Protos$Status/DRIVER_ABORTED)     :driver-aborted
-    (= status Protos$Status/DRIVER_STOPPED)     :driver-stopped
-    :else status))
+  (case-enum status
+    Protos$Status/DRIVER_RUNNING     :driver-running
+    Protos$Status/DRIVER_NOT_STARTED :driver-not-started
+    Protos$Status/DRIVER_ABORTED     :driver-aborted
+    Protos$Status/DRIVER_STOPPED     :driver-stopped
+    status))
 
 ;; FrameworkID
 ;; ===========
@@ -295,10 +296,10 @@
 
 (defmethod pb->data Protos$MachineInfo$Mode
   [^Protos$MachineInfo$Mode mode]
-  (cond
-    (= Protos$MachineInfo$Mode/UP mode)       :machine-mode-up
-    (= Protos$MachineInfo$Mode/DRAINING mode) :machine-mode-draining
-    (= Protos$MachineInfo$Mode/DOWN mode)     :machine-mode-down))
+  (case-enum mode
+    Protos$MachineInfo$Mode/UP       :machine-mode-up
+    Protos$MachineInfo$Mode/DRAINING :machine-mode-draining
+    Protos$MachineInfo$Mode/DOWN     :machine-mode-down))
 
 (defrecord MachineInfo [id mode unavailability]
   Serializable
@@ -332,13 +333,13 @@
 
 (defmethod pb->data Protos$FrameworkInfo$Capability$Type
   [^Protos$FrameworkInfo$Capability$Type type]
-  (cond
-    (= Protos$FrameworkInfo$Capability$Type/TASK_KILLING_STATE type)
+  (case-enum type
+    Protos$FrameworkInfo$Capability$Type/TASK_KILLING_STATE
     :framework-capability-task-killing-state
-    (= Protos$FrameworkInfo$Capability$Type/GPU_RESOURCES type)
+    Protos$FrameworkInfo$Capability$Type/GPU_RESOURCES
     :framework-capability-gpu-resources
-    (= Protos$FrameworkInfo$Capability$Type/REVOCABLE_RESOURCES type)
-    :framework-capability-revocable-resource))
+    Protos$FrameworkInfo$Capability$Type/REVOCABLE_RESOURCES
+    :framework-capability-revocable-resource)
 
 (defrecord FrameworkInfo [user name id failover-timeout checkpoint role
                           hostname principal webui-url capabilities labels]
@@ -556,12 +557,12 @@
 
 (defmethod pb->data Protos$Value$Type
   [^Protos$Value$Type type]
-  (cond
-    (= type Protos$Value$Type/SCALAR) :value-scalar
-    (= type Protos$Value$Type/RANGES) :value-ranges
-    (= type Protos$Value$Type/SET)    :value-set
-    (= type Protos$Value$Type/TEXT)   :value-text
-    :else type))
+  (case-enum type
+    Protos$Value$Type/SCALAR :value-scalar
+    Protos$Value$Type/RANGES :value-ranges
+    Protos$Value$Type/SET    :value-set
+    Protos$Value$Type/TEXT   :value-text
+    type))
 
 (defmethod pb->data Protos$Value$Scalar
   [^Protos$Value$Scalar scalar]
@@ -1036,13 +1037,13 @@
 
 (defmethod pb->data Protos$Offer$Operation$Type
   [^Protos$Offer$Operation$Type type]
-  (cond
-    (= type Protos$Offer$Operation$Type/LAUNCH)    :operation-launch
-    (= type Protos$Offer$Operation$Type/RESERVE)   :operation-reserve
-    (= type Protos$Offer$Operation$Type/UNRESERVE) :operation-unreserve
-    (= type Protos$Offer$Operation$Type/CREATE)    :operation-create
-    (= type Protos$Offer$Operation$Type/DESTROY)   :operation-destroy
-    :else type))
+  (case-enum type
+    Protos$Offer$Operation$Type/LAUNCH    :operation-launch
+    Protos$Offer$Operation$Type/RESERVE   :operation-reserve
+    Protos$Offer$Operation$Type/UNRESERVE :operation-unreserve
+    Protos$Offer$Operation$Type/CREATE    :operation-create
+    Protos$Offer$Operation$Type/DESTROY   :operation-destroy
+    type))
 
 (defrecord Operation [type tasks resources volumes]
   Serializable
@@ -1180,12 +1181,12 @@
 
 (defmethod pb->data Protos$DiscoveryInfo$Visibility
   [^Protos$DiscoveryInfo$Visibility vis]
-  (cond
-    (= Protos$DiscoveryInfo$Visibility/FRAMEWORK vis)
+  (case-enum vis
+    Protos$DiscoveryInfo$Visibility/FRAMEWORK
     :discovery-visibility-framework
-    (= Protos$DiscoveryInfo$Visibility/CLUSTER vis)
+    Protos$DiscoveryInfo$Visibility/CLUSTER
     :discovery-visibility-cluster
-    (= Protos$DiscoveryInfo$Visibility/EXTERNAL vis)
+    Protos$DiscoveryInfo$Visibility/EXTERNAL
     :discovery-visibility-external))
 
 ;; TaskInfo
@@ -1230,83 +1231,82 @@
 
 (defmethod pb->data Protos$TaskState
   [^Protos$TaskState status]
-  (cond
-    (= status Protos$TaskState/TASK_STAGING)  :task-staging
-    (= status Protos$TaskState/TASK_STARTING) :task-starting
-    (= status Protos$TaskState/TASK_RUNNING)  :task-running
-    (= status Protos$TaskState/TASK_FINISHED) :task-finished
-    (= status Protos$TaskState/TASK_FAILED)   :task-failed
-    (= status Protos$TaskState/TASK_KILLED)   :task-killed
-    (= status Protos$TaskState/TASK_LOST)     :task-lost
-    (= status Protos$TaskState/TASK_ERROR)    :task-error
-    :else status))
+  (case-enum status
+    Protos$TaskState/TASK_STAGING  :task-staging
+    Protos$TaskState/TASK_STARTING :task-starting
+    Protos$TaskState/TASK_RUNNING  :task-running
+    Protos$TaskState/TASK_FINISHED :task-finished
+    Protos$TaskState/TASK_FAILED   :task-failed
+    Protos$TaskState/TASK_KILLED   :task-killed
+    Protos$TaskState/TASK_LOST     :task-lost
+    Protos$TaskState/TASK_ERROR    :task-error
+    status))
 
 ;; TaskStatus
 ;; ==========
 
 (defmethod pb->data Protos$TaskStatus$Source
   [^Protos$TaskStatus$Source status]
-  (cond
-    (= status Protos$TaskStatus$Source/SOURCE_MASTER)   :source-master
-    (= status Protos$TaskStatus$Source/SOURCE_SLAVE)    :source-slave
-    (= status Protos$TaskStatus$Source/SOURCE_EXECUTOR) :source-executor
-    :else status))
+  (case-enum status
+    Protos$TaskStatus$Source/SOURCE_MASTER   :source-master
+    Protos$TaskStatus$Source/SOURCE_SLAVE    :source-slave
+    Protos$TaskStatus$Source/SOURCE_EXECUTOR :source-executor
+    status))
 
 (defmethod pb->data Protos$TaskStatus$Reason
   [^Protos$TaskStatus$Reason status]
-
-  (cond
-    (= status Protos$TaskStatus$Reason/REASON_COMMAND_EXECUTOR_FAILED)
+  (case-enum status
+    Protos$TaskStatus$Reason/REASON_COMMAND_EXECUTOR_FAILED
     :reason-command-executor-failed
-    (= status Protos$TaskStatus$Reason/REASON_CONTAINER_LAUNCH_FAILED)
+    Protos$TaskStatus$Reason/REASON_CONTAINER_LAUNCH_FAILED
     :reason-container-launch-failed
-    (= status Protos$TaskStatus$Reason/REASON_CONTAINER_LIMITATION)
+    Protos$TaskStatus$Reason/REASON_CONTAINER_LIMITATION
     :reason-container-limitation
-    (= status Protos$TaskStatus$Reason/REASON_CONTAINER_LIMITATION_DISK)
+    Protos$TaskStatus$Reason/REASON_CONTAINER_LIMITATION_DISK
     :reason-container-limitation-disk
-    (= status Protos$TaskStatus$Reason/REASON_CONTAINER_LIMITATION_MEMORY)
+    Protos$TaskStatus$Reason/REASON_CONTAINER_LIMITATION_MEMORY
     :reason-container-limitation-memory
-    (= status Protos$TaskStatus$Reason/REASON_CONTAINER_PREEMPTED)
+    Protos$TaskStatus$Reason/REASON_CONTAINER_PREEMPTED
     :reason-container-preempted
-    (= status Protos$TaskStatus$Reason/REASON_CONTAINER_UPDATE_FAILED)
+    Protos$TaskStatus$Reason/REASON_CONTAINER_UPDATE_FAILED
     :reason-container-update-failed
-    (= status Protos$TaskStatus$Reason/REASON_EXECUTOR_REGISTRATION_TIMEOUT)
+    Protos$TaskStatus$Reason/REASON_EXECUTOR_REGISTRATION_TIMEOUT
     :reason-executor-registration-timeout
-    (= status Protos$TaskStatus$Reason/REASON_EXECUTOR_REREGISTRATION_TIMEOUT)
+    Protos$TaskStatus$Reason/REASON_EXECUTOR_REREGISTRATION_TIMEOUT
     :reason-executor-reregistration-timeout
-    (= status Protos$TaskStatus$Reason/REASON_EXECUTOR_TERMINATED)
+    Protos$TaskStatus$Reason/REASON_EXECUTOR_TERMINATED
     :reason-executor-terminated
-    (= status Protos$TaskStatus$Reason/REASON_EXECUTOR_UNREGISTERED)
+    Protos$TaskStatus$Reason/REASON_EXECUTOR_UNREGISTERED
     :reason-executor-unregistered
-    (= status Protos$TaskStatus$Reason/REASON_FRAMEWORK_REMOVED)
+    Protos$TaskStatus$Reason/REASON_FRAMEWORK_REMOVED
     :reason-framework-removed
-    (= status Protos$TaskStatus$Reason/REASON_GC_ERROR)
+    Protos$TaskStatus$Reason/REASON_GC_ERROR
     :reason-gc-error
-    (= status Protos$TaskStatus$Reason/REASON_INVALID_FRAMEWORKID)
+    Protos$TaskStatus$Reason/REASON_INVALID_FRAMEWORKID
     :reason-invalid-frameworkid
-    (= status Protos$TaskStatus$Reason/REASON_INVALID_OFFERS)
+    Protos$TaskStatus$Reason/REASON_INVALID_OFFERS
     :reason-invalid-offers
-    (= status Protos$TaskStatus$Reason/REASON_MASTER_DISCONNECTED)
+    Protos$TaskStatus$Reason/REASON_MASTER_DISCONNECTED
     :reason-master-disconnected
-    (= status Protos$TaskStatus$Reason/REASON_RECONCILIATION)
+    Protos$TaskStatus$Reason/REASON_RECONCILIATION
     :reason-reconciliation
-    (= status Protos$TaskStatus$Reason/REASON_RESOURCES_UNKNOWN)
+    Protos$TaskStatus$Reason/REASON_RESOURCES_UNKNOWN
     :reason-resources-unknown
-    (= status Protos$TaskStatus$Reason/REASON_SLAVE_DISCONNECTED)
+    Protos$TaskStatus$Reason/REASON_SLAVE_DISCONNECTED
     :reason-slave-disconnected
-    (= status Protos$TaskStatus$Reason/REASON_SLAVE_REMOVED)
+    Protos$TaskStatus$Reason/REASON_SLAVE_REMOVED
     :reason-slave-removed
-    (= status Protos$TaskStatus$Reason/REASON_SLAVE_RESTARTED)
+    Protos$TaskStatus$Reason/REASON_SLAVE_RESTARTED
     :reason-slave-restarted
-    (= status Protos$TaskStatus$Reason/REASON_SLAVE_UNKNOWN)
+    Protos$TaskStatus$Reason/REASON_SLAVE_UNKNOWN
     :reason-slave-unknown
-    (= status Protos$TaskStatus$Reason/REASON_TASK_INVALID)
+    Protos$TaskStatus$Reason/REASON_TASK_INVALID
     :reason-task-invalid
-    (= status Protos$TaskStatus$Reason/REASON_TASK_UNAUTHORIZED)
+    Protos$TaskStatus$Reason/REASON_TASK_UNAUTHORIZED
     :reason-task-unauthorized
-    (= status Protos$TaskStatus$Reason/REASON_TASK_UNKNOWN)
+    Protos$TaskStatus$Reason/REASON_TASK_UNKNOWN
     :reason-task-unknown
-    :else status))
+    status))
 
 (defrecord TaskStatus [task-id state message source reason
                        data slave-id executor-id timestamp
@@ -1476,10 +1476,10 @@
 
 (defmethod pb->data Protos$Volume$Mode
   [^Protos$Volume$Mode mode]
-  (cond
-    (= mode Protos$Volume$Mode/RW) :volume-rw
-    (= mode Protos$Volume$Mode/RO) :volume-ro
-    :else mode))
+  (case-enum mode
+    Protos$Volume$Mode/RW :volume-rw
+    Protos$Volume$Mode/RO :volume-ro
+    mode))
 
 (defrecord Volume [container-path host-path mode]
   Serializable
@@ -1494,10 +1494,10 @@
 
 (defmethod pb->data Protos$ContainerInfo$Type
   [^Protos$ContainerInfo$Type type]
-  (cond
-    (= type Protos$ContainerInfo$Type/DOCKER) :container-type-docker
-    (= type Protos$ContainerInfo$Type/MESOS)  :conatiner-type-mesos
-    :else type))
+  (cond type
+    Protos$ContainerInfo$Type/DOCKER :container-type-docker
+    Protos$ContainerInfo$Type/MESOS  :conatiner-type-mesos
+    type))
 
 (defrecord PortMapping [host-port container-port protocol]
     Serializable
@@ -1517,14 +1517,14 @@
 
 (defmethod pb->data Protos$ContainerInfo$DockerInfo$Network
   [^Protos$ContainerInfo$DockerInfo$Network network]
-  (cond
-    (= network Protos$ContainerInfo$DockerInfo$Network/HOST)
+  (case-enum network
+    Protos$ContainerInfo$DockerInfo$Network/HOST
     :docker-network-host
-    (= network Protos$ContainerInfo$DockerInfo$Network/BRIDGE)
+    Protos$ContainerInfo$DockerInfo$Network/BRIDGE
     :docker-network-bridge
-    (= network Protos$ContainerInfo$DockerInfo$Network/NONE)
+    Protos$ContainerInfo$DockerInfo$Network/NONE
     :docker-network-none
-    :else network))
+    network))
 
 (defrecord DockerInfo [image network port-mappings
                        privileged parameters]
@@ -1720,47 +1720,47 @@
 
 (defn ->pb
   [map-type this]
-
   (data->pb
    (if (record? this)
      this
-     (cond
-       (= :FrameworkID map-type) (map->FrameworkID this)
-       (= :OfferID map-type) (map->OfferID this)
-       (= :SlaveID map-type) (map->SlaveID this)
-       (= :TaskID map-type)   (map->TaskID this)
-       (= :ExecutorID map-type) (map->ExecutorID this)
-       (= :ContainerID map-type) (map->ContainerID this)
-       (= :FrameworkInfo map-type) (map->FrameworkInfo this)
-       (= :HealthCheckHTTP map-type) (map->HealthCheckHTTP this)
-       (= :HealthCheck map-type) (map->HealthCheck this)
-       (= :URI map-type) (map->URI this)
-       (= :CommandInfo map-type) (map->CommandInfo this)
-       (= :ExecutorInfo map-type) (map->ExecutorInfo this)
-       (= :MasterInfo map-type)   (map->MasterInfo this)
-       (= :SlaveInfo map-type)    (map->SlaveInfo this)
-       (= :ValueRange map-type)   (map->ValueRange this)
-       (= :ValueRanges map-type)  (map->ValueRanges this)
-       (= :Value map-type)        (map->Value this)
-       (= :Attribute map-type)    (map->Attribute this)
-       (= :Resource map-type)     (map->Resource this)
-       (= :Labels map-type)       (map->Labels this)
-       (= :Label map-type)        (map->Label this)
-       (= :Request map-type)      (map->Request this)
-       (= :Offer map-type)                (map->Offer this)
-       (= :Operation map-type)            (map->Operation this)
-       (= :TaskInfo map-type)             (map->TaskInfo this)
-       (= :TaskStatus map-type)           (map->TaskStatus this)
-       (= :Filters map-type)              (map->Filters this)
-       (= :EnvironmentVariable map-type)  (map->EnvironmentVariable this)
-       (= :Environment map-type)          (map->Environment this)
-       (= :Parameter map-type)            (map->Parameter this)
-       (= :Parameters map-type)           (map->Parameter this)
-       (= :Credential map-type)           (map->Credential this)
-       (= :Credentials map-type)          (map->Credentials this)
-       (= :RateLimit map-type)            (map->RateLimit this)
-       (= :RateLimits map-type)           (map->RateLimits this)
-       (= :Volume map-type)               (map->Volume this)
-       (= :PortMapping map-type)          (map->PortMapping this)
-       (= :DockerInfo map-type)           (map->DockerInfo this)
-       (= :ContainerInfo map-type)        (map->ContainerInfo this)))))
+     (let [f (case map-type
+               :FrameworkID         map->FrameworkID
+               :OfferID             map->OfferID
+               :SlaveID             map->SlaveID
+               :TaskID              map->TaskID
+               :ExecutorID          map->ExecutorID
+               :ContainerID         map->ContainerID
+               :FrameworkInfo       map->FrameworkInfo
+               :HealthCheckHTTP     map->HealthCheckHTTP
+               :HealthCheck         map->HealthCheck
+               :URI                 map->URI
+               :CommandInfo         map->CommandInfo
+               :ExecutorInfo        map->ExecutorInfo
+               :MasterInfo          map->MasterInfo
+               :SlaveInfo           map->SlaveInfo
+               :ValueRange          map->ValueRange
+               :ValueRanges         map->ValueRanges
+               :Value               map->Value
+               :Attribute           map->Attribute
+               :Resource            map->Resource
+               :Labels              map->Labels
+               :Label               map->Label
+               :Request             map->Request
+               :Offer               map->Offer
+               :Operation           map->Operation
+               :TaskInfo            map->TaskInfo
+               :TaskStatus          map->TaskStatus
+               :Filters             map->Filters
+               :EnvironmentVariable map->EnvironmentVariable
+               :Environment         map->Environment
+               :Parameter           map->Parameter
+               :Parameters          map->Parameter
+               :Credential          map->Credential
+               :Credentials         map->Credentials
+               :RateLimit           map->RateLimit
+               :RateLimits          map->RateLimits
+               :Volume              map->Volume
+               :PortMapping         map->PortMapping
+               :DockerInfo          map->DockerInfo
+               :ContainerInfo       map->ContainerInfo)]
+       (f this)))))
