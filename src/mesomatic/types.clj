@@ -1726,6 +1726,7 @@
      this
      (cond
        (= :FrameworkID map-type) (map->FrameworkID this)
+       (= :FrameworkCapability map-type) (map->FrameworkCapability this)
        (= :OfferID map-type) (map->OfferID this)
        (= :SlaveID map-type) (map->SlaveID this)
        (= :TaskID map-type)   (map->TaskID this)
