@@ -1092,7 +1092,6 @@
 (defmethod pb->data Protos$Offer$Operation
   [^Protos$Offer$Operation op]
   (let [type (pb->data (.getType op))]
-    (println (format "Got type '%s'" type))
     (case type
       :operation-launch
         (Operation. type
