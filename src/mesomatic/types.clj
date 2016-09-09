@@ -1639,6 +1639,9 @@
       :machine-mode-up          Protos$MachineInfo$Mode/UP
       :machine-mode-draining    Protos$MachineInfo$Mode/DRAINING
       :machine-mode-down        Protos$MachineInfo$Mode/DOWN
+      :source-master            Protos$TaskStatus$Source/SOURCE_MASTER
+      :source-slave             Protos$TaskStatus$Source/SOURCE_SLAVE
+      :source-executor          Protos$TaskStatus$Source/SOURCE_EXECUTOR
 
       ;; These are too wide and mess up indenting!
       :framework-capability-revocable-resource
