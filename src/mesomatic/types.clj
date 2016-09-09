@@ -547,7 +547,7 @@
    (.getHostname info)
    (.getPort info)
    (mapv pb->data (.getResourcesList info))
-   (mapv pb->data (.getAttributes info))
+   (mapv pb->data (.getAttributesList info))
    (when-let [id (.getId info)] (pb->data id))
    (.getCheckpoint info)))
 
