@@ -339,7 +339,7 @@
     Protos$FrameworkInfo$Capability$Type/GPU_RESOURCES
     :framework-capability-gpu-resources
     Protos$FrameworkInfo$Capability$Type/REVOCABLE_RESOURCES
-    :framework-capability-revocable-resource)
+    :framework-capability-revocable-resource))
 
 (defrecord FrameworkInfo [user name id failover-timeout checkpoint role
                           hostname principal webui-url capabilities labels]
@@ -1725,6 +1725,7 @@
      this
      (let [f (case map-type
                :FrameworkID         map->FrameworkID
+               :FrameworkCapability map->FrameworkCapability
                :OfferID             map->OfferID
                :SlaveID             map->SlaveID
                :TaskID              map->TaskID
