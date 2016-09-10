@@ -25,6 +25,11 @@ you will need to pull it in as well:
 :dependencies [[org.spootnik/mesomatic       "1.0.1-r0"]
                [org.spootnik/mesomatic-async "1.0.1-r0"]]
 ```
+
+## Examples
+
+See example frameworks built with mesomatic at 
+https://github.com/clojusc/mesomatic-examples
                
 ## Namespaces
 
@@ -56,6 +61,23 @@ A few cases do not yield records:
 - Set values (`Protos.Value.Set`) yield sets.
 - Some types containing a single repeated field are unrolled
   as a seq of their content, such as `Protos.Value.Ranges`.
+  
+## Changelog
+
+### 1.0.1-r0
+
+- Target mesos 1.0.1
+- Support for GPU resources
+
+This release was built with help from:
+
+- @oubiwan
+- @munk
+- @mforsyth
+- @dgrnbg
+- @alexandergunnarson
+
+
 
 
 
