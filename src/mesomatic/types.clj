@@ -1412,7 +1412,7 @@
   Serializable
   (data->pb [this]
     (-> (Protos$Credential/newBuilder)
-        (.setPrincipal (str key))
+        (.setPrincipal (str principal))
         (cond-> secret (.setSecret (str secret)))
         (.build))))
 
