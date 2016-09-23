@@ -1487,7 +1487,8 @@
     (-> (Protos$Volume/newBuilder)
         (.setContainerPath (str container-path))
         (.setMode (data->pb mode))
-        (cond-> host-path (.setHostPath (str host-path))))))
+        (cond-> host-path (.setHostPath (str host-path)))
+        (.build))))
 
 ;; ContainerInfo
 ;; =============
