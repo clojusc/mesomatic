@@ -334,12 +334,18 @@
 (defmethod pb->data Protos$FrameworkInfo$Capability$Type
   [^Protos$FrameworkInfo$Capability$Type type]
   (case-enum type
+    Protos$FrameworkInfo$Capability$Type/UNKNOWN
+    :framework-capability-unknown
+    Protos$FrameworkInfo$Capability$Type/REVOCABLE_RESOURCES
+    :framework-capability-revocable-resources
     Protos$FrameworkInfo$Capability$Type/TASK_KILLING_STATE
     :framework-capability-task-killing-state
     Protos$FrameworkInfo$Capability$Type/GPU_RESOURCES
     :framework-capability-gpu-resources
-    Protos$FrameworkInfo$Capability$Type/REVOCABLE_RESOURCES
-    :framework-capability-revocable-resource))
+    Protos$FrameworkInfo$Capability$Type/SHARED_RESOURCES
+    :framework-capability-shared-resources
+    Protos$FrameworkInfo$Capability$Type/PARTITION_AWARE
+    :framework-capability-partition-aware))
 
 (defrecord FrameworkInfo [user name id failover-timeout checkpoint role
                           hostname principal webui-url capabilities labels]
@@ -1643,12 +1649,18 @@
       :source-executor          Protos$TaskStatus$Source/SOURCE_EXECUTOR
 
       ;; These are too wide and mess up indenting!
-      :framework-capability-revocable-resource
+      :framework-capability-unknown
+      Protos$FrameworkInfo$Capability$Type/UNKNOWN
+      :framework-capability-revocable-resources
       Protos$FrameworkInfo$Capability$Type/REVOCABLE_RESOURCES
       :framework-capability-task-killing-state
       Protos$FrameworkInfo$Capability$Type/TASK_KILLING_STATE
       :framework-capability-gpu-resources
       Protos$FrameworkInfo$Capability$Type/GPU_RESOURCES
+      :framework-capability-shared-resources
+      Protos$FrameworkInfo$Capability$Type/SHARED_RESOURCES
+      :framework-capability-partition-aware
+      Protos$FrameworkInfo$Capability$Type/PARTITION_AWARE
 
       :discovery-visibility-framework
       Protos$DiscoveryInfo$Visibility/FRAMEWORK
