@@ -1412,7 +1412,7 @@
   Serializable
   (data->pb [this]
     (-> (Protos$Credential/newBuilder)
-        (.setPrincipal (str key))
+        (.setPrincipal (str principal))
         (cond-> secret (.setSecret (str secret)))
         (.build))))
 
@@ -1487,7 +1487,8 @@
     (-> (Protos$Volume/newBuilder)
         (.setContainerPath (str container-path))
         (.setMode (data->pb mode))
-        (cond-> host-path (.setHostPath (str host-path))))))
+        (cond-> host-path (.setHostPath (str host-path)))
+        (.build))))
 
 ;; ContainerInfo
 ;; =============
