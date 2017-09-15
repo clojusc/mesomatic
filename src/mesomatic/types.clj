@@ -1497,7 +1497,7 @@
   [^Protos$ContainerInfo$Type type]
   (cond type
     Protos$ContainerInfo$Type/DOCKER :container-type-docker
-    Protos$ContainerInfo$Type/MESOS  :conatiner-type-mesos
+    Protos$ContainerInfo$Type/MESOS  :container-type-mesos
     type))
 
 (defrecord PortMapping [host-port container-port protocol]
