@@ -1527,7 +1527,7 @@
     :docker-network-none
     network))
 
-(defrecord DockerInfo [image network port-mappings
+(defrecord DockerInfo [image network force-pull-image port-mappings
                        privileged parameters]
   Serializable
   (data->pb [this]
@@ -1535,6 +1535,7 @@
         (.setImage image)
         (cond->
             network    (.setNetwork (data->pb network))
+            (not (nil? privileged)) (.setForcePullImage (boolean force-pull-image))
             (not (nil? privileged)) (.setPrivileged (boolean privileged)))
         (.addAllPortMappings (mapv (partial ->pb :PortMapping) port-mappings))
         (.addAllParameters (mapv (partial ->pb :Parameter) parameters))
