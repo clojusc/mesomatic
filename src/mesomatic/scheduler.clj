@@ -155,8 +155,8 @@
       (MesosSchedulerDriver. scheduler
         (->pb :FrameworkInfo framework)
         master
-        (->pb :Credential credential)
-        implicit-acknowledgements?))))
+        implicit-acknowledgements?
+        (->pb :Credential credential)))))
 
 (defn scheduler-driver
   [& args]
