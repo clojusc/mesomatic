@@ -71,7 +71,7 @@ A few cases do not yield records:
 
 This release was built with help from:
 
-- @oubiwan
+- @oubiwann
 - @munk
 - @mforsyth
 - @dgrnbg
