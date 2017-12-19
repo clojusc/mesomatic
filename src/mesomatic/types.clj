@@ -1499,7 +1499,7 @@
   [^Protos$ContainerInfo$Type type]
   (cond type
     Protos$ContainerInfo$Type/DOCKER :container-type-docker
-    Protos$ContainerInfo$Type/MESOS  :conatiner-type-mesos
+    Protos$ContainerInfo$Type/MESOS  :container-type-mesos
     type))
 
 (defrecord PortMapping [host-port container-port protocol]
@@ -1529,7 +1529,7 @@
     :docker-network-none
     network))
 
-(defrecord DockerInfo [image network port-mappings
+(defrecord DockerInfo [image network force-pull-image port-mappings
                        privileged parameters]
   Serializable
   (data->pb [this]
@@ -1537,6 +1537,7 @@
         (.setImage image)
         (cond->
             network    (.setNetwork (data->pb network))
+            (not (nil? privileged)) (.setForcePullImage (boolean force-pull-image))
             (not (nil? privileged)) (.setPrivileged (boolean privileged)))
         (.addAllPortMappings (mapv (partial ->pb :PortMapping) port-mappings))
         (.addAllParameters (mapv (partial ->pb :Parameter) parameters))
