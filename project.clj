@@ -2,5 +2,5 @@
   :description "Apache Mesos type conversions to and from Clojure"
   :url "https://github.com/pyr/mesomatic"
   :license {:name "MIT License"}
-  :dependencies [[org.clojure/clojure    "1.8.0"]
+  :dependencies [[org.clojure/clojure    "1.9.0"]
                  [org.apache.mesos/mesos "1.0.1"]])
