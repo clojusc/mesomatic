@@ -28,7 +28,7 @@ originally created by [pyr][pyr] at `pyr/mesomatic`. The new location,
 
 ## Usage
 
-Add this to your leiningen profile.
+Add this to your leiningen profile:
 
 ```clojure
 :dependencies [[clojusc/mesomatic "1.0.1-r1-SNAPSHOT"]]
@@ -97,6 +97,15 @@ This release was built with help from:
 - @mforsyth
 - @dgrnbg
 - @alexandergunnarson
+
+
+## Contributor Resources
+
+- http://mesos.apache.org/documentation/latest/upgrades/
+- https://github.com/ContainerSolutions/minimesos
+- https://github.com/ContainerSolutions/minimesos-docker
+- https://github.com/katacoda/minimesos-examples
+- https://github.com/mesos/elasticsearch/tree/master/system-test/src/systemTest/java/org/apache/mesos/elasticsearch/systemtest
 
 
 <!-- Named page links below: /-->
