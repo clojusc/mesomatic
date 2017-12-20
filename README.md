@@ -20,6 +20,12 @@ originally created by [pyr][pyr] at `pyr/mesomatic`. The new location,
 `clojusc/mesomatic`, is now the offical home for the library.
 
 
+## Resources
+
+* An excellent [Mesos presentation][mesos-video] from ApacheCon 2014
+* [pyr][pyr]'s Euroclojure 2015 [talk on Mesomatic][mesomatic-video]
+
+
 ## Usage
 
 Add this to your leiningen profile.
@@ -110,3 +116,5 @@ This release was built with help from:
 [pyr]: https://github.com/pyr
 [core-async]: https://github.com/clojure/core.async
 [examples]: https://github.com/clojusc/mesomatic-examples
+[mesos-video]: https://www.youtube.com/watch?v=hTcZGODnyf0
+[mesomatic-video]: https://www.youtube.com/watch?v=X-fVA5DxezE
