@@ -31,15 +31,15 @@ originally created by [pyr][pyr] at `pyr/mesomatic`. The new location,
 Add this to your leiningen profile:
 
 ```clojure
-:dependencies [[clojusc/mesomatic "1.0.1-r1-SNAPSHOT"]]
+:dependencies [[clojusc/mesomatic "1.0.1-r1"]]
 ```
 
 If you want to use the [core.async][core-async] facade,
 you will need to pull it in as well:
 
 ```clojure
-:dependencies [[clojusc/mesomatic "1.0.1-r1-SNAPSHOT"]
-               [clojusc/mesomatic-async "1.0.1-r1-SNAPSHOT"]]
+:dependencies [[clojusc/mesomatic "1.0.1-r1"]
+               [clojusc/mesomatic-async "1.0.1-r1"]]
 ```
 
 
