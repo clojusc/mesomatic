@@ -1,5 +1,5 @@
 (defproject clojusc/mesomatic-async "1.0.1-r1-SNAPSHOT"
-  :description "asynchronous facade for mesomatic"
+  :description "Async support for the Clojure mesomatic Mesos library"
   :url "https://github.com/clojusc/mesomatic"
   :license {:name "MIT License"}
   :dependencies [[clojusc/mesomatic "1.0.1-r1-SNAPSHOT"]

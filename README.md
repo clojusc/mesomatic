@@ -3,6 +3,8 @@ mesomatic: the cluster is a library
 
 [![Build Status](https://secure.travis-ci.org/clojusc/mesomatic.png)](http://travis-ci.org/clojusc/mesomatic)
 
+**A simple and idiomatic Clojure facade around the Mesos JAVA API**
+
 Mesomatic provides facilities to interact with [Apache Mesos](http://mesos.apache.org)
 from clojure. It provides a simple and idiomatic facade around the Mesos JAVA API and
 facilities to help when writing mesos frameworks.
@@ -32,9 +34,9 @@ you will need to pull it in as well:
 
 ## Examples
 
-See example frameworks built with mesomatic at 
+See example frameworks built with mesomatic at
 https://github.com/clojusc/mesomatic-examples
-               
+
 ## Namespaces
 
 - `mesomatic.types`: contains a facade to and from all protobuf types.
@@ -65,7 +67,7 @@ A few cases do not yield records:
 - Set values (`Protos.Value.Set`) yield sets.
 - Some types containing a single repeated field are unrolled
   as a seq of their content, such as `Protos.Value.Ranges`.
-  
+
 ## Changelog
 
 ### 1.0.1
