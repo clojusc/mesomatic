@@ -15,8 +15,8 @@ Mesomatic versions match the API version they target, a trailing minor
 indicates the patch release number, for instance version `1.0.1-r0` will
 target mesos `1.0.1`.
 
-Note that the clojusc Github org has volunteered to maintain the library
-originally created by [pyr][pyr] at `pyr/mesomatic`. The new location,
+Note that the [clojusc Github org][clojusc] has volunteered to maintain the
+library originally created by [pyr][pyr] at `pyr/mesomatic`. The new location,
 `clojusc/mesomatic`, is now the offical home for the library.
 
 
@@ -127,3 +127,4 @@ This release was built with help from:
 [examples]: https://github.com/clojusc/mesomatic-examples
 [mesos-video]: https://www.youtube.com/watch?v=hTcZGODnyf0
 [mesomatic-video]: https://www.youtube.com/watch?v=X-fVA5DxezE
+[clojusc]: https://github.com/clojusc
