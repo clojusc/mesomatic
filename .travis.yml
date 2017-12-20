@@ -1,10 +1,13 @@
-sudo: false
 language: clojure
-lein: lein
+script:
+  - lein build
 jdk:
-    - openjdk7
-    - oraclejdk7
-branches:
-  except:
-    - gh-pages
-                
+  - oraclejdk8
+  - oraclejdk7
+  - openjdk7
+env:
+  - LEIN_SNAPSHOTS_IN_RELEASE=true
+notifications:
+  email:
+      - oubiwann@gmail.com
+

@@ -1,7 +1,7 @@
-(defproject spootnik/mesomatic-async "1.0.1-r0"
-  :description "asynchronous facade for mesomatic"
-  :url "https://github.com/pyr/mesomatic"
+(defproject clojusc/mesomatic-async "1.0.1-r1"
+  :description "Async support for the Clojure mesomatic Mesos library"
+  :url "https://github.com/clojusc/mesomatic"
   :license {:name "MIT License"}
-  :dependencies [[org.clojure/clojure    "1.8.0"]
-                 [org.clojure/core.async "0.2.391"]
-                 [spootnik/mesomatic     "1.0.1-r0"]])
+  :dependencies [[clojusc/mesomatic "1.0.1-r1"]
+                 [org.clojure/core.async "0.2.374"]
+                 [org.clojure/clojure "1.8.0"]])
