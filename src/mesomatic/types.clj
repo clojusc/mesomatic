@@ -1209,7 +1209,7 @@
               data         (.setData data)
               health-check (.setHealthCheck (->pb :HealthCheck health-check))
               labels       (.setLabels (->pb :Labels labels))
-              discovery    (.setDiscovery (-> :DiscoveryInfo discovery)))
+              discovery    (.setDiscovery (discovery :DiscoveryInfo)))
           (.addAllResources (mapv (partial ->pb :Resource) resources))
           (.build))))
 
