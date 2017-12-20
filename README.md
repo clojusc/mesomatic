@@ -1,7 +1,7 @@
 mesomatic: the cluster is a library
 ===================================
 
-[![Build Status](https://secure.travis-ci.org/pyr/mesomatic.png)](http://travis-ci.org/pyr/mesomatic)
+[![Build Status](https://secure.travis-ci.org/clojusc/mesomatic.png)](http://travis-ci.org/clojusc/mesomatic)
 
 Mesomatic provides facilities to interact with [Apache Mesos](http://mesos.apache.org)
 from clojure. It provides a simple and idiomatic facade around the Mesos JAVA API and
@@ -19,15 +19,15 @@ created by [pyr](https://github.com/pyr) at `pyr/mesomatic`. The new location,
 Add this to your leiningen profile.
 
 ```clojure
-:dependencies [[org.spootnik/mesomatic "1.0.1-r0"]]
+:dependencies [[clojusc/mesomatic "1.0.1-r1-SNAPSHOT"]]
 ```
 
 If you want to use the [core.async](https://github.com/clojure/core.async) facade,
 you will need to pull it in as well:
 
 ```clojure
-:dependencies [[org.spootnik/mesomatic       "1.0.1-r0"]
-               [org.spootnik/mesomatic-async "1.0.1-r0"]]
+:dependencies [[clojusc/mesomatic "1.0.1-r1-SNAPSHOT"]
+               [clojusc/mesomatic-async "1.0.1-r1-SNAPSHOT"]]
 ```
 
 ## Examples
@@ -68,10 +68,11 @@ A few cases do not yield records:
   
 ## Changelog
 
-### 1.0.1-r0
+### 1.0.1
 
 - Target mesos 1.0.1
 - Support for GPU resources
+- Updates for API changes in Java bindings
 
 This release was built with help from:
 
