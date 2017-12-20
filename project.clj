@@ -1,4 +1,4 @@
-(defproject clojusc/mesomatic "1.0.1-r1"
+(defproject clojusc/mesomatic "1.0.1-r2-SNAPSHOT"
   :description "A simple and idiomatic Clojure facade around the Mesos JAVA API"
   :url "https://github.com/clojusc/mesomatic"
   :license {:name "MIT License"}
