@@ -34,7 +34,7 @@
     "check-deps" ["with-profile" "+test" "ancient" "check" ":all"]
     "lint" ["with-profile" "+test" "kibit"]
     "test" ["with-profile" "+test" "ltest"]
-    "build" ["with-profile" "+test" "do"
+    "build-check" ["with-profile" "+test" "do"
       ;["check-deps"]
       ["lint"]
       ["ubercompile"]
