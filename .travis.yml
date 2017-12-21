@@ -1,6 +1,12 @@
 language: clojure
+sudo: required
+services:
+  - docker
+before_install:
+  - docker pull clojusc/mesos:1.0.1
+  - docker run -d -p 5050:5050 clojusc/mesos:1.0.1
 script:
-  - lein build
+  - lein build-check
 jdk:
   - oraclejdk8
   - oraclejdk7
