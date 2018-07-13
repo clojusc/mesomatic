@@ -6,6 +6,20 @@
 
 [![][logo]][logo-large]
 
+**Contents**
+
+* About
+* Resources
+* Usage
+* Examples
+* Namespaces
+* Type Conversions
+* Release Notes
+* Contributor Resources
+* Donating
+
+
+## About
 
 Mesomatic provides facilities to interact with [Apache Mesos][mesos] from
 clojure. It provides a simple and idiomatic facade around the Mesos JAVA API
@@ -58,7 +72,7 @@ Be sure to examine the [example frameworks][examples] built with mesomatic.
 - `mesomatic.helpers`: utility helpers for cluster decisions
 
 
-## Type conversions
+## Type Conversions
 
 To go to and from protobuf types, mesomatic uses two simple functions:
 
@@ -71,7 +85,7 @@ By yielding records, mesomatic provides elements which are homomorphic to
 maps and can easily be converted back to protobuf.
 
 
-#### Special cases
+### Special Cases
 
 A few cases do not yield records:
 
@@ -82,21 +96,13 @@ A few cases do not yield records:
   as a seq of their content, such as `Protos.Value.Ranges`.
 
 
-## Changelog
+## Release Notes
 
 ### 1.0.1
 
 - Target mesos 1.0.1
 - Support for GPU resources
 - Updates for API changes in Java bindings
-
-This release was built with help from:
-
-- @oubiwann
-- @munk
-- @mforsyth
-- @dgrnbg
-- @alexandergunnarson
 
 
 ## Contributor Resources
@@ -107,6 +113,18 @@ This release was built with help from:
 - https://github.com/katacoda/minimesos-examples
 - https://github.com/mesos/elasticsearch/tree/master/system-test/src/systemTest/java/org/apache/mesos/elasticsearch/systemtest
 
+
+## Donating
+
+A donation account for supporting development on this project has been set up
+on Liberapay here:
+
+* [https://liberapay.com/clojusc-mesomatic/donate](https://liberapay.com/clojusc-mesomatic/donate)
+
+You can learn more about Liberapay on its [Wikipedia entry][libera-wiki] or on the
+service's ["About" page][libera-about].
+
+https://liberapay.com/clojusc-mesomatic/donate
 
 <!-- Named page links below: /-->
 
@@ -128,3 +146,5 @@ This release was built with help from:
 [mesos-video]: https://www.youtube.com/watch?v=hTcZGODnyf0
 [mesomatic-video]: https://www.youtube.com/watch?v=X-fVA5DxezE
 [clojusc]: https://github.com/clojusc
+[libera-wiki]: https://en.wikipedia.org/wiki/Liberapay
+[libera-about]: https://liberapay.com/about/
